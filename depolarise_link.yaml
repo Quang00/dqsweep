@@ -11,11 +11,11 @@ stacks:
 
 link_cfg: &link_cfg
   # Fidelity between the EPR pair qubits
-  fidelity: 0.7
+  fidelity: 0.3
   # Time in nanoseconds for an attempt to generated entanglement
   t_cycle: 10.
   # Chance for each attempt at entanglement to succeed
-  prob_success: 0.8
+  prob_success: 0.1
 
 links:
   - stack1: Alice

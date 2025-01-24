@@ -1,13 +1,12 @@
+import numpy as np
+
 from netqasm.sdk.classical_communication.socket import Socket
 from netqasm.sdk.connection import BaseNetQASMConnection
 from netqasm.sdk.epr_socket import EPRSocket
 from netqasm.sdk.qubit import Qubit
 from netsquid.qubits.dmutil import dm_fidelity
-
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state
-
-import numpy as np
 
 class AliceProgram(Program):
     PEER_NAME = "Bob"
