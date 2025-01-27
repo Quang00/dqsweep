@@ -16,13 +16,13 @@ stacks:
     qdevice_cfg:
       <<: *qdevice_cfg
 
-link_cfg: &link_cfg
-    # total length [km] of heralded connection (i.e. sum of fibers on both sides on midpoint station).
-    length: 1.0
-    # probability that photons are lost when entering connection the connection on either side.
-    p_loss_init: 0
-    # attenuation coefficient [dB/km] of fiber on either side.
-    p_loss_length: 0.25
+link_cfg:
+  &link_cfg # total length [km] of heralded connection (i.e. sum of fibers on both sides on midpoint station).
+  length: 1.0
+  # probability that photons are lost when entering connection the connection on either side.
+  p_loss_init: 0
+  # attenuation coefficient [dB/km] of fiber on either side.
+  p_loss_length: 0.25
 
 links:
   - stack1: Alice
