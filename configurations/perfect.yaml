@@ -20,8 +20,3 @@ links:
   - stack1: Alice
     stack2: Bob
     typ: perfect
-
-clinks:
-  - stack1: Alice
-    stack2: Bob
-    typ: instant

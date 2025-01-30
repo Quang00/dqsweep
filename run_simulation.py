@@ -7,6 +7,7 @@ from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
 
 from application import AliceProgram, BobProgram
+from teleportation import AliceTeleportation, BobTeleportation
 
 
 def main():
@@ -18,6 +19,12 @@ def main():
         type=str,
         required=True,
         help="Path to the configuration of the quantum network file.",
+    )
+    parser.add_argument(
+        "--method",
+        type=str,
+        default="cnot",
+        help="The method to perfom the nonlocal cnot (cnot, teleportation).",
     )
     parser.add_argument(
         "--epr_rounds",
@@ -76,7 +83,7 @@ def main():
             param2_range,
         )
     else:
-        calculate_average_fidelity(cfg, args.epr_rounds, args.num_experiments)
+        calculate_average_fidelity(cfg, args.method, args.epr_rounds, args.num_experiments)
 
 
 def parse_range(range_str):
@@ -132,14 +139,20 @@ def analyze_two_parameters(
     )
 
 
-def calculate_average_fidelity(cfg, epr_rounds, num_experiments):
+def calculate_average_fidelity(cfg, method, epr_rounds, num_experiments):
     """Calculate and print the average fidelity over multiple experiments."""
     try:
+        if method == "teleportation":
+            alice_method = AliceTeleportation(num_epr_rounds=1)
+            bob_method = BobTeleportation(num_epr_rounds=1)
+        else:
+            alice_method = AliceProgram(num_epr_rounds=epr_rounds)
+            bob_method = BobProgram(num_epr_rounds=epr_rounds)
         _, fidelities = run(
             config=cfg,
             programs={
-                "Alice": AliceProgram(num_epr_rounds=epr_rounds),
-                "Bob": BobProgram(num_epr_rounds=epr_rounds),
+                "Alice": alice_method,
+                "Bob": bob_method,
             },
             num_times=num_experiments,
         )

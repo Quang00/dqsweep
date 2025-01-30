@@ -4,12 +4,11 @@ from netqasm.sdk.connection import BaseNetQASMConnection
 from netqasm.sdk.epr_socket import EPRSocket
 from netqasm.sdk.qubit import Qubit
 from netsquid.qubits.dmutil import dm_fidelity
-from netsquid.util.simtools import sim_time
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state
 
 
-class AliceProgram(Program):
+class AliceTeleportation(Program):
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds):
@@ -43,26 +42,24 @@ class AliceProgram(Program):
 
             # Perfom a CNOT gate between alice qubit and her shared entangled qubit a1
             alice_qubit.cnot(a1_qubit)
+            alice_qubit.H()
 
-            # Alice measures her entangled qubit a1
+            # Alice measures her two qubits
             a1_measurement = a1_qubit.measure()
+            alice_measurement = alice_qubit.measure()
             yield from connection.flush()
-
-            # Alice send her measurement to Bob on a classical channel
+           
+            # Alice send her measurements to Bob on a classical channel
             csocket.send(str(a1_measurement))
-
-            # Alice listens the classical channel to get Bob's measurement
-            b1_measurement = yield from csocket.recv()
-            if b1_measurement == "1":
-                alice_qubit.Z()
-
-            alice_qubit.free()
+            csocket.send(str(alice_measurement))
+          
             yield from connection.flush()
+            alice_qubit.free()
 
         return {}
 
 
-class BobProgram(Program):
+class BobTeleportation(Program):
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds):
@@ -96,23 +93,23 @@ class BobProgram(Program):
             bob_qubit = Qubit(connection)
             bob_qubit.reset()
 
-            # Bob listens the classical channel to get the measurement from Alice
+            # Bob listens the classical channel to get the measurements from Alice
             a1_measurement = yield from csocket.recv()
+            alice_measurement = yield from csocket.recv()
 
-            # At this stage a distributed CNOT was perfomed between Alice qubit and b1 qubit
             if a1_measurement == "1":
                 b1_qubit.X()
+            if alice_measurement == "1":
+                b1_qubit.Z()
 
             b1_qubit.cnot(bob_qubit)
-            b1_qubit.H()
-            b1_measurement = b1_qubit.measure()
-
             yield from connection.flush()
-
-            # Bob send the measurement to Alice on a classical channel
-            csocket.send(str(b1_measurement))
+            a = bob_qubit.measure()
+            yield from connection.flush()
+            fidelities.append(a)
+            '''
             dm_b = get_qubit_state(bob_qubit, "Bob", full_state=True)
-
+ 
             # Create the perfect resulting density matrix to assess the fidelity
             state_ref = np.array([0, 0, 0, 1], dtype=complex)
             dm_ref = np.outer(state_ref, np.conjugate(state_ref))
@@ -120,8 +117,8 @@ class BobProgram(Program):
             # Compute the fidelity between the two density matrices
             fidelity = dm_fidelity(dm_b, dm_ref)
             fidelities.append(fidelity)
-
-            bob_qubit.free()
+            '''
             yield from connection.flush()
+            bob_qubit.free()
 
         return fidelities
