@@ -4,6 +4,7 @@ from netqasm.sdk.connection import BaseNetQASMConnection
 from netqasm.sdk.epr_socket import EPRSocket
 from netqasm.sdk.qubit import Qubit
 from netsquid.qubits.dmutil import dm_fidelity
+from netsquid.util.simtools import sim_time, MILLISECOND
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state
 
@@ -37,7 +38,6 @@ class AliceTeleportation(Program):
 
             # Create a local qubit which is the control qubit of the distributed CNOT gate
             alice_qubit = Qubit(connection)
-            alice_qubit.reset()
             alice_qubit.X()
 
             # Perfom a CNOT gate between alice qubit and her shared entangled qubit a1
@@ -48,13 +48,11 @@ class AliceTeleportation(Program):
             a1_measurement = a1_qubit.measure()
             alice_measurement = alice_qubit.measure()
             yield from connection.flush()
-           
+
             # Alice send her measurements to Bob on a classical channel
             csocket.send(str(a1_measurement))
             csocket.send(str(alice_measurement))
-          
             yield from connection.flush()
-            alice_qubit.free()
 
         return {}
 
@@ -83,6 +81,7 @@ class BobTeleportation(Program):
         connection: BaseNetQASMConnection = context.connection
 
         fidelities = []
+        simulation_times = []
         for _ in range(self._num_epr_rounds):
             # Listen for request to create EPR pair
             b1_qubit = epr_socket.recv_keep()[0]
@@ -91,7 +90,6 @@ class BobTeleportation(Program):
 
             # Create a local qubit which is the target qubit of the distributed CNOT gate
             bob_qubit = Qubit(connection)
-            bob_qubit.reset()
 
             # Bob listens the classical channel to get the measurements from Alice
             a1_measurement = yield from csocket.recv()
@@ -103,22 +101,21 @@ class BobTeleportation(Program):
                 b1_qubit.Z()
 
             b1_qubit.cnot(bob_qubit)
+            b1_qubit.measure()
             yield from connection.flush()
-            a = bob_qubit.measure()
-            yield from connection.flush()
-            fidelities.append(a)
-            '''
+
             dm_b = get_qubit_state(bob_qubit, "Bob", full_state=True)
  
             # Create the perfect resulting density matrix to assess the fidelity
-            state_ref = np.array([0, 0, 0, 1], dtype=complex)
+            state_ref = np.array([0, 1], dtype=complex)
             dm_ref = np.outer(state_ref, np.conjugate(state_ref))
 
             # Compute the fidelity between the two density matrices
             fidelity = dm_fidelity(dm_b, dm_ref)
             fidelities.append(fidelity)
-            '''
-            yield from connection.flush()
-            bob_qubit.free()
 
-        return fidelities
+            bob_qubit.free()
+            yield from connection.flush()
+            simulation_times.append(sim_time(MILLISECOND))
+
+        return fidelities, simulation_times

@@ -4,7 +4,7 @@ from netqasm.sdk.connection import BaseNetQASMConnection
 from netqasm.sdk.epr_socket import EPRSocket
 from netqasm.sdk.qubit import Qubit
 from netsquid.qubits.dmutil import dm_fidelity
-from netsquid.util.simtools import sim_time
+from netsquid.util.simtools import sim_time, MILLISECOND
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state
 
@@ -38,7 +38,6 @@ class AliceProgram(Program):
 
             # Create a local qubit which is the control qubit of the distributed CNOT gate
             alice_qubit = Qubit(connection)
-            alice_qubit.reset()
             alice_qubit.X()
 
             # Perfom a CNOT gate between alice qubit and her shared entangled qubit a1
@@ -86,6 +85,7 @@ class BobProgram(Program):
         connection: BaseNetQASMConnection = context.connection
 
         fidelities = []
+        simulation_times = []
         for _ in range(self._num_epr_rounds):
             # Listen for request to create EPR pair
             b1_qubit = epr_socket.recv_keep()[0]
@@ -94,7 +94,6 @@ class BobProgram(Program):
 
             # Create a local qubit which is the target qubit of the distributed CNOT gate
             bob_qubit = Qubit(connection)
-            bob_qubit.reset()
 
             # Bob listens the classical channel to get the measurement from Alice
             a1_measurement = yield from csocket.recv()
@@ -123,5 +122,6 @@ class BobProgram(Program):
 
             bob_qubit.free()
             yield from connection.flush()
+            simulation_times.append(sim_time(MILLISECOND))
 
-        return fidelities
+        return fidelities, simulation_times

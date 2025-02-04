@@ -62,12 +62,12 @@ def main():
 
     # Parse ranges
     param1_range = (
-        parse_range(args.param1_range)
+        parse_range(args.plot_parameter_effects, args.param1_range)
         if args.param1_range
         else np.linspace(0.0, 0.8, 10)
     )
     param2_range = (
-        parse_range(args.param2_range)
+        parse_range(args.plot_parameter_effects, args.param2_range)
         if args.param2_range
         else np.linspace(0.0, 0.8, 10)
     )
@@ -86,13 +86,18 @@ def main():
         calculate_average_fidelity(cfg, args.method, args.epr_rounds, args.num_experiments)
 
 
-def parse_range(range_str):
+def parse_range(params, range_str):
     """Parse a range string in the format 'start,end,points'."""
-    if not range_str:
+    if not range_str or not params:
         return None
     try:
+        param1, param2 = params
+        log_scale_params = ['T1', 'T2', 'length']
         start, end, points = map(float, range_str.split(","))
-        return np.linspace(start, end, int(points))
+        if param1 in log_scale_params or param2 in log_scale_params:
+            return np.logspace(start, end, int(points))
+        else:
+            return np.linspace(start, end, int(points))
     except ValueError:
         print("Ranges must be in the format 'start,end,points', with numeric values.")
 
@@ -110,6 +115,7 @@ def analyze_two_parameters(
     os.makedirs(output_dir, exist_ok=True)
 
     param1, param2 = params_to_plot
+    depolarise_link_param = ['fidelity', 'prob_succcess']
 
     # Initialize fidelity matrix
     fidelity_matrix = np.zeros((len(param1_values), len(param2_values)))
@@ -118,10 +124,14 @@ def analyze_two_parameters(
     for i, val1 in enumerate(param1_values):
         for j, val2 in enumerate(param2_values):
             try:
-                cfg.stacks[0].qdevice_cfg[param1] = val1
-                cfg.stacks[0].qdevice_cfg[param2] = val2
+                if param1 in depolarise_link_param or param2 in depolarise_link_param:
+                    cfg.links[0].cfg[param1] = val1
+                    cfg.links[0].cfg[param2] = val2
+                else:
+                    cfg.stacks[0].qdevice_cfg[param1] = val1
+                    cfg.stacks[0].qdevice_cfg[param2] = val2
 
-                _, fidelities = run(
+                _, results = run(
                     config=cfg,
                     programs={
                         "Alice": AliceProgram(num_epr_rounds=epr_rounds),
@@ -129,11 +139,11 @@ def analyze_two_parameters(
                     },
                     num_times=num_experiments,
                 )
-                fidelity_matrix[i, j] = np.average(fidelities) * 100
+                results = [results[i][0] for i in range(len(results))]
+                fidelity_matrix[i, j] = np.average(results) * 100
             except ValueError as e:
                 print(f"Skipping {param1}={val1}, {param2}={val2}: {e}")
                 fidelity_matrix[i, j] = 0
-
     plot_2d_heatmap(
         param1, param2, param1_values, param2_values, fidelity_matrix, output_dir
     )
@@ -143,12 +153,12 @@ def calculate_average_fidelity(cfg, method, epr_rounds, num_experiments):
     """Calculate and print the average fidelity over multiple experiments."""
     try:
         if method == "teleportation":
-            alice_method = AliceTeleportation(num_epr_rounds=1)
-            bob_method = BobTeleportation(num_epr_rounds=1)
+            alice_method = AliceTeleportation(num_epr_rounds=epr_rounds)
+            bob_method = BobTeleportation(num_epr_rounds=epr_rounds)
         else:
             alice_method = AliceProgram(num_epr_rounds=epr_rounds)
             bob_method = BobProgram(num_epr_rounds=epr_rounds)
-        _, fidelities = run(
+        _, results = run(
             config=cfg,
             programs={
                 "Alice": alice_method,
@@ -156,9 +166,16 @@ def calculate_average_fidelity(cfg, method, epr_rounds, num_experiments):
             },
             num_times=num_experiments,
         )
+        print(f"Method used: {method}")
+        fidelities = [results[i][0] for i in range(len(results))]
+        simulation_times = [results[i][1] for i in range(len(results))]
         avg_fidelity = np.average(fidelities) * 100
+        avg_simulation_times = np.average(simulation_times)
         print(
             f"Average fidelity over {num_experiments} experiments: {avg_fidelity:.2f}%"
+        )
+        print(
+            f"Average simulation time over {num_experiments} experiments: {avg_simulation_times:.2f} ms"
         )
     except ValueError as e:
         print(f"Error during simulation: {e}")
@@ -179,7 +196,7 @@ def plot_2d_heatmap(
         ],
         origin="lower",
         aspect="auto",
-        cmap="magma",
+        cmap="coolwarm"
     )
     plt.colorbar(label="Fidelity (%)")
     plt.title(
