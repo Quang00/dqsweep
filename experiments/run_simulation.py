@@ -185,7 +185,7 @@ def calculate_average_fidelity(cfg, experiment, epr_rounds, num_experiments):
             alice_method = AliceProgram(num_epr_rounds=epr_rounds)
             bob_method = BobProgram(num_epr_rounds=epr_rounds)
 
-        _, results = run(
+        alice_results, bob_results = run(
             config=cfg,
             programs={
                 "Alice": alice_method,
@@ -194,17 +194,30 @@ def calculate_average_fidelity(cfg, experiment, epr_rounds, num_experiments):
             num_times=num_experiments,
         )
 
-        fidelities = [results[i][0] for i in range(len(results))]
-        simulation_times = [results[i][1] for i in range(len(results))]
-        avg_fidelity = np.average(fidelities) * 100
-        avg_simulation_times = np.average(simulation_times)
+        if experiment == "pingpong":
+            all_alice_fidelities = []
+            for exp in alice_results:
+                all_alice_fidelities.extend(exp)
+            all_bob_fidelities = []
+            for exp in bob_results:
+                all_bob_fidelities.extend(exp)
+            avg_alice_fidelity = np.mean(all_alice_fidelities) * 100
+            avg_bob_fidelity = np.mean(all_bob_fidelities) * 100
 
-        print(
-            f"Average fidelity over {num_experiments} experiments: {avg_fidelity:.2f}%"
-        )
-        print(
-            f"Average simulation time over {num_experiments} experiments: {avg_simulation_times:.2f} ms"
-        )
+            print(f"Average fidelity for Alice over {num_experiments} experiments: {avg_alice_fidelity:.2f}%")
+            print(f"Average fidelity for Bob over {num_experiments} experiments: {avg_bob_fidelity:.2f}%")
+        else:
+            fidelities = [bob_results[i][0] for i in range(len(bob_results))]
+            simulation_times = [bob_results[i][1] for i in range(len(bob_results))]
+            avg_fidelity = np.average(fidelities) * 100
+            avg_simulation_times = np.average(simulation_times)
+
+            print(
+                f"Average fidelity over {num_experiments} experiments: {avg_fidelity:.2f}%"
+            )
+            print(
+                f"Average simulation time over {num_experiments} experiments: {avg_simulation_times:.2f} ms"
+            )
     except ValueError as e:
         print(f"Error during simulation: {e}")
 
