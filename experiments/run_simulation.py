@@ -1,18 +1,20 @@
 import argparse
 import os
+import logging
 
 import matplotlib.pyplot as plt
 import numpy as np
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
 
-from application import AliceProgram, BobProgram
+from nonlocal_cnot import AliceProgram, BobProgram
 from teleportation import AliceTeleportation, BobTeleportation
+from pingpong import AlicePingpongTeleportation, BobPingpongTeleporation
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Distributed CNOT gate simulation and analyze quantum network parameter effects."
+        description="Analysis of fidelity/latency of multiple parameters of a quantum network for different experiments."
     )
     parser.add_argument(
         "--config",
@@ -21,10 +23,10 @@ def main():
         help="Path to the configuration of the quantum network file.",
     )
     parser.add_argument(
-        "--method",
+        "--experiment",
         type=str,
         default="cnot",
-        help="The method to perfom the nonlocal cnot (cnot, teleportation).",
+        help="The experiment to simulate (cnot, teleportation, pingpong).",
     )
     parser.add_argument(
         "--epr_rounds",
@@ -83,7 +85,7 @@ def main():
             param2_range,
         )
     else:
-        calculate_average_fidelity(cfg, args.method, args.epr_rounds, args.num_experiments)
+        calculate_average_fidelity(cfg, args.experiment, args.epr_rounds, args.num_experiments)
 
 
 def parse_range(params, range_str):
@@ -111,19 +113,27 @@ def analyze_two_parameters(
     param2_values,
     output_dir="results",
 ):
-    """Analyze and save a heatmap of the combined effect of two parameters on fidelity."""
+    """
+    Analyze and save heatmaps of the combined effect of two parameters on fidelity and simulation time.
+    For each combination of parameter values, we run the simulation to obtain two metrics:
+      - Fidelity (extracted as the first element in each result, multiplied by 100)
+      - Simulation Time (extracted as the second element in each result)
+    After averaging over experiments, two heatmaps are generated.
+    """
     os.makedirs(output_dir, exist_ok=True)
 
     param1, param2 = params_to_plot
     depolarise_link_param = ['fidelity', 'prob_succcess']
 
-    # Initialize fidelity matrix
+    # Initialize matrices for both fidelity and simulation time
     fidelity_matrix = np.zeros((len(param1_values), len(param2_values)))
+    simulation_time_matrix = np.zeros((len(param1_values), len(param2_values)))
 
     # Iterate through parameter combinations
     for i, val1 in enumerate(param1_values):
         for j, val2 in enumerate(param2_values):
             try:
+                # Update configuration based on the parameter location
                 if param1 in depolarise_link_param or param2 in depolarise_link_param:
                     cfg.links[0].cfg[param1] = val1
                     cfg.links[0].cfg[param2] = val2
@@ -131,6 +141,7 @@ def analyze_two_parameters(
                     cfg.stacks[0].qdevice_cfg[param1] = val1
                     cfg.stacks[0].qdevice_cfg[param2] = val2
 
+                # Run the simulation
                 _, results = run(
                     config=cfg,
                     programs={
@@ -139,25 +150,41 @@ def analyze_two_parameters(
                     },
                     num_times=num_experiments,
                 )
-                results = [results[i][0] for i in range(len(results))]
-                fidelity_matrix[i, j] = np.average(results) * 100
+                # Extract fidelity and simulation time from results
+                fidelities = [results[k][0] for k in range(len(results))]
+                simulation_times = [results[k][1] for k in range(len(results))]
+                fidelity_matrix[i, j] = np.average(fidelities) * 100
+                simulation_time_matrix[i, j] = np.average(simulation_times)
             except ValueError as e:
                 print(f"Skipping {param1}={val1}, {param2}={val2}: {e}")
                 fidelity_matrix[i, j] = 0
+                simulation_time_matrix[i, j] = 0
+
     plot_2d_heatmap(
-        param1, param2, param1_values, param2_values, fidelity_matrix, output_dir
+        param1, param2, param1_values, param2_values,
+        fidelity_matrix, output_dir, metric="Fidelity (%)"
+    )
+    plot_2d_heatmap(
+        param1, param2, param1_values, param2_values,
+        simulation_time_matrix, output_dir, metric="Simulation Time (ms)"
     )
 
 
-def calculate_average_fidelity(cfg, method, epr_rounds, num_experiments):
-    """Calculate and print the average fidelity over multiple experiments."""
+def calculate_average_fidelity(cfg, experiment, epr_rounds, num_experiments):
+    """Calculate and print the average fidelity and simulation time over multiple experiments."""
     try:
-        if method == "teleportation":
+        if experiment == "teleportation":
             alice_method = AliceTeleportation(num_epr_rounds=epr_rounds)
             bob_method = BobTeleportation(num_epr_rounds=epr_rounds)
+        elif experiment == "pingpong":
+            alice_method = AlicePingpongTeleportation(num_epr_rounds=epr_rounds)
+            bob_method = BobPingpongTeleporation(num_epr_rounds=epr_rounds)
+            alice_method.logger.setLevel(logging.INFO)
+            bob_method.logger.setLevel(logging.INFO)
         else:
             alice_method = AliceProgram(num_epr_rounds=epr_rounds)
             bob_method = BobProgram(num_epr_rounds=epr_rounds)
+
         _, results = run(
             config=cfg,
             programs={
@@ -166,11 +193,12 @@ def calculate_average_fidelity(cfg, method, epr_rounds, num_experiments):
             },
             num_times=num_experiments,
         )
-        print(f"Method used: {method}")
+
         fidelities = [results[i][0] for i in range(len(results))]
         simulation_times = [results[i][1] for i in range(len(results))]
         avg_fidelity = np.average(fidelities) * 100
         avg_simulation_times = np.average(simulation_times)
+
         print(
             f"Average fidelity over {num_experiments} experiments: {avg_fidelity:.2f}%"
         )
@@ -182,12 +210,16 @@ def calculate_average_fidelity(cfg, method, epr_rounds, num_experiments):
 
 
 def plot_2d_heatmap(
-    param1, param2, param1_values, param2_values, fidelity_matrix, output_dir
+    param1, param2, param1_values, param2_values, metric_matrix, output_dir, metric="Fidelity (%)"
 ):
-    """Plot the 2D heatmap for two parameters."""
+    """
+    Plot a 2D heatmap for two parameters.
+
+    The heatmap displays the provided metric (e.g. 'Fidelity (%)' or 'Simulation Time (ms)').
+    """
     plt.figure()
     plt.imshow(
-        fidelity_matrix,
+        metric_matrix,
         extent=[
             param2_values[0],
             param2_values[-1],
@@ -198,16 +230,22 @@ def plot_2d_heatmap(
         aspect="auto",
         cmap="coolwarm"
     )
-    plt.colorbar(label="Fidelity (%)")
+    plt.colorbar(label=metric)
+
+    if "(" in metric:
+        metric_name = metric.split(" (")[0]
+    else:
+        metric_name = metric
+
     plt.title(
-        f"Effect of {param1.replace('_', ' ').capitalize()} and {param2.replace('_', ' ').capitalize()} on Fidelity"
+        f"Effect of {param1.replace('_', ' ').capitalize()} and {param2.replace('_', ' ').capitalize()} on {metric_name}"
     )
     plt.xlabel(f"{param2.replace('_', ' ').capitalize()}")
     plt.ylabel(f"{param1.replace('_', ' ').capitalize()}")
-    filename = os.path.join(output_dir, f"heatmap_{param1}_{param2}.png")
+    filename = os.path.join(output_dir, f"heatmap_{param1}_{param2}_{metric_name.replace(' ', '_').lower()}.png")
     plt.savefig(filename)
     plt.close()
-    print(f"Saved heatmap for {param1} and {param2} to {filename}")
+    print(f"Saved heatmap for {param1} and {param2} on {metric} to {filename}")
 
 
 if __name__ == "__main__":
