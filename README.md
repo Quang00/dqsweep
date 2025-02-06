@@ -19,6 +19,10 @@ python3 experiments/run_simulation.py --config configurations/generic_qdevice.ya
 ```
 
 ```bash
+python3 experiments/run_simulation.py --config configurations/generic_qdevice.yaml --exepriment teleportation --plot_parameter_effects single_qubit_gate_depolar_prob two_qubit_gate_depolar_prob --num_experiments 100
+```
+
+```bash
 python3 experiments/run_simulation.py --config configurations/depolarise_link.yaml --plot_parameter_effects fidelity prob_success --param1_range 1.0,0.3,10 --param2_range 1.0,0.1,10 --num_experiments 100
 ```
 

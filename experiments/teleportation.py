@@ -62,6 +62,8 @@ class BobTeleportation(Program):
 
     def __init__(self, num_epr_rounds):
         self._num_epr_rounds = num_epr_rounds
+        self.fidelities = []
+        self.simulation_times = []
 
     @property
     def meta(self) -> ProgramMeta:
@@ -80,8 +82,6 @@ class BobTeleportation(Program):
         # get connection to quantum network processing unit
         connection: BaseNetQASMConnection = context.connection
 
-        fidelities = []
-        simulation_times = []
         for _ in range(self._num_epr_rounds):
             # Listen for request to create EPR pair
             b1_qubit = epr_socket.recv_keep()[0]
@@ -112,10 +112,10 @@ class BobTeleportation(Program):
 
             # Compute the fidelity between the two density matrices
             fidelity = dm_fidelity(dm_b, dm_ref)
-            fidelities.append(fidelity)
+            self.fidelities.append(fidelity)
 
             bob_qubit.free()
             yield from connection.flush()
-            simulation_times.append(sim_time(MILLISECOND))
+            self.simulation_times.append(sim_time(MILLISECOND))
 
-        return fidelities, simulation_times
+        return self.fidelities, self.simulation_times

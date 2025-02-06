@@ -74,6 +74,9 @@ def main():
         else np.linspace(0.0, 0.8, 10)
     )
 
+    if args.experiment == "pingpong":
+        cfg.stacks[0].qdevice_cfg['num_qubits'] = args.num_experiments * args.epr_rounds
+
     # Analyze parameter effects for two parameters or calculate average fidelity
     if args.plot_parameter_effects:
         analyze_two_parameters(
@@ -83,6 +86,7 @@ def main():
             args.plot_parameter_effects,
             param1_range,
             param2_range,
+            args.experiment
         )
     else:
         calculate_average_fidelity(cfg, args.experiment, args.epr_rounds, args.num_experiments)
@@ -111,6 +115,7 @@ def analyze_two_parameters(
     params_to_plot,
     param1_values,
     param2_values,
+    experiment,
     output_dir="results",
 ):
     """
@@ -129,6 +134,18 @@ def analyze_two_parameters(
     fidelity_matrix = np.zeros((len(param1_values), len(param2_values)))
     simulation_time_matrix = np.zeros((len(param1_values), len(param2_values)))
 
+    if  experiment == "teleportation":
+            alice_method = AliceTeleportation(num_epr_rounds=epr_rounds)
+            bob_method = BobTeleportation(num_epr_rounds=epr_rounds)
+    elif experiment == "pingpong":
+            alice_method = AlicePingpongTeleportation(num_epr_rounds=epr_rounds)
+            bob_method = BobPingpongTeleporation(num_epr_rounds=epr_rounds)
+            #alice_method.logger.setLevel(logging.INFO)
+            #bob_method.logger.setLevel(logging.INFO)
+    else:
+            alice_method = AliceProgram(num_epr_rounds=epr_rounds)
+            bob_method = BobProgram(num_epr_rounds=epr_rounds)
+
     # Iterate through parameter combinations
     for i, val1 in enumerate(param1_values):
         for j, val2 in enumerate(param2_values):
@@ -142,19 +159,14 @@ def analyze_two_parameters(
                     cfg.stacks[0].qdevice_cfg[param2] = val2
 
                 # Run the simulation
-                _, results = run(
-                    config=cfg,
-                    programs={
-                        "Alice": AliceProgram(num_epr_rounds=epr_rounds),
-                        "Bob": BobProgram(num_epr_rounds=epr_rounds),
-                    },
-                    num_times=num_experiments,
-                )
-                # Extract fidelity and simulation time from results
-                fidelities = [results[k][0] for k in range(len(results))]
-                simulation_times = [results[k][1] for k in range(len(results))]
-                fidelity_matrix[i, j] = np.average(fidelities) * 100
-                simulation_time_matrix[i, j] = np.average(simulation_times)
+                alice_results, bob_results = run(config=cfg, programs={"Alice": alice_method, "Bob": bob_method}, num_times=num_experiments)
+
+                fidelities = [bob_results[k][0] for k in range(len(bob_results))]
+                simulation_times = [bob_results[k][1] for k in range(len(bob_results))]
+
+                if len(fidelities) > 0 and len(simulation_times) > 0:
+                    fidelity_matrix[i, j] = np.average(fidelities) * 100
+                    simulation_time_matrix[i, j] = np.average(simulation_times)
             except ValueError as e:
                 print(f"Skipping {param1}={val1}, {param2}={val2}: {e}")
                 fidelity_matrix[i, j] = 0
@@ -162,11 +174,11 @@ def analyze_two_parameters(
 
     plot_2d_heatmap(
         param1, param2, param1_values, param2_values,
-        fidelity_matrix, output_dir, metric="Fidelity (%)"
+        fidelity_matrix, output_dir, experiment, metric="Fidelity (%)"
     )
     plot_2d_heatmap(
         param1, param2, param1_values, param2_values,
-        simulation_time_matrix, output_dir, metric="Simulation Time (ms)"
+        simulation_time_matrix, output_dir, experiment, metric="Simulation Time (ms)"
     )
 
 
@@ -185,52 +197,54 @@ def calculate_average_fidelity(cfg, experiment, epr_rounds, num_experiments):
             alice_method = AliceProgram(num_epr_rounds=epr_rounds)
             bob_method = BobProgram(num_epr_rounds=epr_rounds)
 
-        alice_results, bob_results = run(
-            config=cfg,
-            programs={
-                "Alice": alice_method,
-                "Bob": bob_method,
-            },
-            num_times=num_experiments,
-        )
+        alice_results, bob_results = run(config=cfg, programs={"Alice": alice_method, "Bob": bob_method,}, num_times=num_experiments)
 
         if experiment == "pingpong":
-            all_alice_fidelities = []
-            for exp in alice_results:
-                all_alice_fidelities.extend(exp)
-            all_bob_fidelities = []
-            for exp in bob_results:
-                all_bob_fidelities.extend(exp)
-            avg_alice_fidelity = np.mean(all_alice_fidelities) * 100
-            avg_bob_fidelity = np.mean(all_bob_fidelities) * 100
+            alice_fidelities = [alice_results[i][0] for i in range(len(alice_results))]
+            alice_simulation_times = [alice_results[i][1] for i in range(len(alice_results))]
+            bob_fidelities = [bob_results[i][0] for i in range(len(bob_results))]
+            bob_simulation_times = [bob_results[i][1] for i in range(len(bob_results))]
 
-            print(f"Average fidelity for Alice over {num_experiments} experiments: {avg_alice_fidelity:.2f}%")
-            print(f"Average fidelity for Bob over {num_experiments} experiments: {avg_bob_fidelity:.2f}%")
+            if len(alice_fidelities) > 0 and len(bob_fidelities) > 0 and len(alice_simulation_times) > 0 and len(bob_simulation_times) > 0:
+                avg_alice_fidelity = np.average(alice_fidelities) * 100
+                avg_alice_simulation_times = np.average(alice_simulation_times)
+                avg_bob_fidelity = np.average(bob_fidelities) * 100
+                avg_bob_simulation_times = np.average(bob_simulation_times)
+            
+                print(f"Average fidelity for Alice over {num_experiments} experiments: {avg_alice_fidelity:.2f}%")
+                print(f"Average fidelity for Bob over {num_experiments} experiments: {avg_bob_fidelity:.2f}%")
+                print(f"Average simulation time for Alice over {num_experiments} experiments: {avg_alice_simulation_times:.2f} ms")
+                print(f"Average simulation time for Bob over {num_experiments} experiments: {avg_bob_simulation_times:.2f} ms")
+            else:
+                print("The experiment fails. Make sure to provide a valid configuration.")
         else:
             fidelities = [bob_results[i][0] for i in range(len(bob_results))]
             simulation_times = [bob_results[i][1] for i in range(len(bob_results))]
-            avg_fidelity = np.average(fidelities) * 100
-            avg_simulation_times = np.average(simulation_times)
+            
+            if len(fidelities) > 0 and len(simulation_times) > 0:
+                avg_fidelity = np.average(fidelities) * 100
+                avg_simulation_times = np.average(simulation_times)
 
-            print(
-                f"Average fidelity over {num_experiments} experiments: {avg_fidelity:.2f}%"
-            )
-            print(
-                f"Average simulation time over {num_experiments} experiments: {avg_simulation_times:.2f} ms"
-            )
+                print(f"Average fidelity over {num_experiments} experiments: {avg_fidelity:.2f}%")
+                print(f"Average simulation time over {num_experiments} experiments: {avg_simulation_times:.2f} ms")
+            else:
+                print("The experiment fails. Make sure to provide a valid configuration.")
     except ValueError as e:
         print(f"Error during simulation: {e}")
 
 
 def plot_2d_heatmap(
-    param1, param2, param1_values, param2_values, metric_matrix, output_dir, metric="Fidelity (%)"
+    param1, param2, param1_values, param2_values, metric_matrix, output_dir, experiment, metric="Fidelity (%)"
 ):
     """
     Plot a 2D heatmap for two parameters.
 
     The heatmap displays the provided metric (e.g. 'Fidelity (%)' or 'Simulation Time (ms)').
     """
-    plt.figure()
+
+    cmap_style = "magma" if metric == "Fidelity (%)" else "viridis"
+
+    plt.figure(figsize=(10,8))
     plt.imshow(
         metric_matrix,
         extent=[
@@ -241,21 +255,21 @@ def plot_2d_heatmap(
         ],
         origin="lower",
         aspect="auto",
-        cmap="coolwarm"
+        cmap=cmap_style
     )
     plt.colorbar(label=metric)
 
-    if "(" in metric:
-        metric_name = metric.split(" (")[0]
-    else:
-        metric_name = metric
+    metric_name = metric.split(" (")[0] if "(" in metric else metric
+
+    param1 = " ".join(param1.split('_')[:3])
+    param2 = " ".join(param2.split('_')[:3])
 
     plt.title(
-        f"Effect of {param1.replace('_', ' ').capitalize()} and {param2.replace('_', ' ').capitalize()} on {metric_name}"
+        f"{experiment.capitalize()}: Effect of {param1.replace('_', ' ').capitalize()} and {param2.replace('_', ' ').capitalize()} on {metric_name}"
     )
     plt.xlabel(f"{param2.replace('_', ' ').capitalize()}")
     plt.ylabel(f"{param1.replace('_', ' ').capitalize()}")
-    filename = os.path.join(output_dir, f"heatmap_{param1}_{param2}_{metric_name.replace(' ', '_').lower()}.png")
+    filename = os.path.join(output_dir, f"{experiment}_heatmap_{param1}_{param2}_{metric_name.replace(' ', '_').lower()}.png")
     plt.savefig(filename)
     plt.close()
     print(f"Saved heatmap for {param1} and {param2} on {metric} to {filename}")

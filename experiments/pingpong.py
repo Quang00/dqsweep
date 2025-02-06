@@ -1,20 +1,17 @@
-import logging
 import math
 import numpy as np
 
 from netqasm.sdk import Qubit
 from netqasm.sdk.toolbox.state_prep import set_qubit_state
+from netsquid.util.simtools import sim_time, MILLISECOND
 from netsquid.qubits.dmutil import dm_fidelity
-from squidasm.run.stack.config import StackNetworkConfig
-from squidasm.run.stack.run import run
 from squidasm.sim.stack.common import LogManager
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state, get_reference_state
 from squidasm.util.routines import teleport_recv, teleport_send
 
-# Fixed state for the pingpong teleportation protocol.
-FIXED_THETA = np.pi / 2
-FIXED_PHI = 0.0
+THETA = 0.0
+PHI = 0.0
 
 def extract_params_from_dm(dm):
     """
@@ -39,9 +36,10 @@ class AlicePingpongTeleportation(Program):
     def __init__(self, num_epr_rounds):
         self._num_epr_rounds = num_epr_rounds
         self.logger = LogManager.get_stack_logger(self.__class__.__name__)
-        self.current_phi = FIXED_PHI
-        self.current_theta = FIXED_THETA
+        self.current_phi = PHI
+        self.current_theta = THETA
         self.fidelities = []
+        self.simulation_times = []
 
     @property
     def meta(self) -> ProgramMeta:
@@ -53,7 +51,6 @@ class AlicePingpongTeleportation(Program):
         )
 
     def run(self, context: ProgramContext):
-        self.fidelities = []
         # For a total of num_epr_rounds, alternate sending (even rounds)
         # and receiving (odd rounds).
         for round in range(self._num_epr_rounds):
@@ -69,15 +66,13 @@ class AlicePingpongTeleportation(Program):
                 # Odd rounds: receive the qubit.
                 q = yield from teleport_recv(context, peer_name=self.PEER_NAME)
                 dm_received = get_qubit_state(q, "Alice")
-                dm_expected = get_reference_state(FIXED_PHI, FIXED_THETA)
+                dm_expected = get_reference_state(PHI, THETA)
+                self.current_phi, self.current_theta = extract_params_from_dm(dm_received)
                 fid = dm_fidelity(dm_received, dm_expected)
                 self.fidelities.append(fid)
-                self.logger.info(
-                    f"Round {round}: Alice received qubit with fidelity: {fid}"
-                )
-                # Update current state from the received qubit (even though under ideal conditions it should remain the same)
-                self.current_phi, self.current_theta = extract_params_from_dm(dm_received)
-        return self.fidelities
+                self.logger.info(f"Round {round}: Alice received qubit with fidelity: {fid} and dm:\n {dm_received}")
+                self.simulation_times.append(sim_time(MILLISECOND))
+        return self.fidelities, self.simulation_times
 
 class BobPingpongTeleporation(Program):
     PEER_NAME = "Alice"
@@ -88,6 +83,7 @@ class BobPingpongTeleporation(Program):
         self.current_phi = None  # Will be updated upon reception.
         self.current_theta = None
         self.fidelities = []
+        self.simulation_times = []
 
     @property
     def meta(self) -> ProgramMeta:
@@ -99,7 +95,6 @@ class BobPingpongTeleporation(Program):
         )
 
     def run(self, context: ProgramContext):
-        self.fidelities = []
         # For a total of num_epr_rounds, alternate between receiving (even rounds)
         # and sending (odd rounds).
         for round in range(self._num_epr_rounds):
@@ -108,10 +103,11 @@ class BobPingpongTeleporation(Program):
                 q = yield from teleport_recv(context, peer_name=self.PEER_NAME)
                 dm_received = get_qubit_state(q, "Bob")
                 self.current_phi, self.current_theta = extract_params_from_dm(dm_received)
-                dm_expected = get_reference_state(FIXED_PHI, FIXED_THETA)
+                dm_expected = get_reference_state(PHI, THETA)
                 fid = dm_fidelity(dm_received, dm_expected)
                 self.fidelities.append(fid)
-                self.logger.info(f"Round {round}: Bob received qubit with fidelity: {fid}")
+                self.logger.info(f"Round {round}: Bob received qubit with fidelity: {fid} and dm:\n {dm_received}")
+                self.simulation_times.append(sim_time(MILLISECOND))
             else:
                 # Odd rounds: send the qubit.
                 if self.current_phi is None or self.current_theta is None:
@@ -123,27 +119,4 @@ class BobPingpongTeleporation(Program):
                     f"Round {round}: Bob sending qubit with state: phi={self.current_phi}, theta={self.current_theta}"
                 )
                 yield from teleport_send(q, context, peer_name=self.PEER_NAME)
-        return self.fidelities
-
-if __name__ == "__main__":
-    cfg = StackNetworkConfig.from_file('configurations/generic_qdevice.yaml')
-    num_epr_rounds = 100
-    num_experiments = 1
-
-    alice_program = AlicePingpongTeleportation(num_epr_rounds=num_epr_rounds)
-    bob_program = BobPingpongTeleporation(num_epr_rounds=num_epr_rounds)
-
-    alice_program.logger.setLevel(logging.INFO)
-    bob_program.logger.setLevel(logging.INFO)
-
-    alice_results, bob_results = run(
-        config=cfg,
-        programs={"Alice": alice_program, "Bob": bob_program},
-        num_times=num_experiments,
-    )
-
-    avg_alice_fidelities = np.mean(alice_results) * 100
-    avg_bob_fidelities = np.mean(bob_results) * 100
-
-    print("Alice fidelities:", avg_alice_fidelities)
-    print("Bob fidelities:", avg_bob_fidelities)
+        return self.fidelities, self.simulation_times
