@@ -29,3 +29,13 @@ python3 experiments/run_simulation.py --config configurations/depolarise_link.ya
 ```bash
 python3 experiments/run_simulation.py --config configurations/config.yaml --plot_parameter_effects length T1 --param1_range 1,10,10 --param2_range 7,9,10
 ```
+
+```bash
+python experiments/run_simulation.py \
+  --config configurations/generic_qdevice.yaml \
+  --experiment pingpong \
+  --epr_rounds 2 \
+  --num_experiments 2 \
+  --sweep_params T1,single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
+  --ranges "1e10,1e9,10" "0.0,0.8,10" "0.0,0.8,10" \
+```
