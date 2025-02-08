@@ -27,25 +27,40 @@ def truncate_param(name: str, n: int = 3) -> str:
     return " ".join(name.split("_")[:n])
 
 
-def create_unique_dir(directory: str) -> str:
-    """Creates a unique directory if one with the same name exists.
+def create_subdir(directory: str, experiment: str, sweep_params: list | str) -> str:
+    """Creates a structured subdirectory for storing experiment results.
 
     Args:
-        directory (str): Target directory path.
+        directory (str): The main results directory (e.g., "results").
+        experiment (str): The experiment name (e.g., "pingpong").
+        sweep_params (list | str): List of swept parameters (or a string).
 
     Returns:
-        str: Unique directory path.
+        str: Path to the created experiment-specific directory.
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
-        return directory
-    counter = 1
-    new_dir = f"{directory}_{counter}"
-    while os.path.exists(new_dir):
-        counter += 1
-        new_dir = f"{directory}_{counter}"
-    os.makedirs(new_dir)
-    return new_dir
+
+    if isinstance(sweep_params, str):
+        sweep_params = sweep_params.split(",")
+
+    sweep_params = [param.strip() for param in sweep_params]
+    param_names = (
+        "_".join(truncate_param(param, n=1) for param in sweep_params)
+        if sweep_params
+        else "default"
+    )
+    experiment_dir = os.path.join(directory, f"{experiment}_{param_names}")
+    cpt = 1
+    new_subdir = experiment_dir
+
+    while os.path.exists(new_subdir):
+        new_subdir = f"{experiment_dir}_{cpt}"
+        cpt += 1
+
+    os.makedirs(new_subdir)
+
+    return new_subdir
 
 
 def parse_range(range_str: str, param_name: str) -> np.ndarray:

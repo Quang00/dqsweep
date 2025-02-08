@@ -39,7 +39,7 @@ from nonlocal_cnot import AliceProgram, BobProgram
 from pingpong import AlicePingpongTeleportation, BobPingpongTeleportation
 from teleportation import AliceTeleportation, BobTeleportation
 from utils import (
-    create_unique_dir,
+    create_subdir,
     parse_range,
     plot_combined_3d_surfaces,
     plot_combined_heatmaps,
@@ -167,7 +167,7 @@ def main():
     )
     args = parser.parse_args()
 
-    unique_output_dir = create_unique_dir(args.output_dir)
+    unique_output_dir = create_subdir(args.output_dir, args.experiment, args.sweep_params)
     print(f"Using output directory: {unique_output_dir}")
 
     cfg = StackNetworkConfig.from_file(args.config)
