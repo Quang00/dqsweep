@@ -29,197 +29,22 @@ import argparse
 import itertools
 import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
 
-from utils import create_unique_dir, parse_range, truncate_param
 from nonlocal_cnot import AliceProgram, BobProgram
 from pingpong import AlicePingpongTeleportation, BobPingpongTeleportation
 from teleportation import AliceTeleportation, BobTeleportation
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-FIDELITY = "Average Fidelity (%)"
-TIME = "Average Simulation Time (ms)"
-
-
-# =============================================================================
-# Plotting Functions
-# =============================================================================
-def plot_parameter_metric_correlation(
-    df: pd.DataFrame,
-    sweep_params: list,
-    metric_cols: list,
-    output_dir: str,
-    experiment: str,
-):
-    """Computes and plots a bar chart for parameter-performance correlation.
-
-    Args:
-        df (pd.DataFrame): Dataframe containing parameter values and metrics.
-        sweep_params (list): List of parameters being swept.
-        metric_cols (list): List of performance metrics.
-        output_dir (str): Directory to save the plot.
-        experiment (str): Experiment name.
-    """
-    corr_data = df[sweep_params + metric_cols].corr()
-    corr_subset = corr_data.loc[sweep_params, metric_cols]
-
-    x = np.arange(len(sweep_params))
-    width = 0.35
-
-    fig, ax = plt.subplots(figsize=(12, len(sweep_params) * 0.8 + 4))
-    for i, metric in enumerate(metric_cols):
-        ax.barh(x + (i * width), corr_subset[metric], width, label=metric)
-
-    ax.set_yticks(x + width / 2)
-    ax.set_yticklabels(sweep_params, fontsize=14)
-    ax.set_xlabel("Correlation Coefficient", fontsize=14)
-    ax.set_title(
-        f"{experiment.capitalize()} Parameter-Performance Correlation",
-        fontsize=16,
-        fontweight="bold",
-    )
-    ax.legend(title="Performance Metrics", fontsize=12)
-    plt.grid(axis="x", linestyle="--", alpha=0.7)
-    plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_param_metric_correlation.png")
-    plt.savefig(filename, dpi=1000)
-    plt.close()
-    print(f"Saved correlation bar chart to {filename}")
-
-
-def plot_combined_3d_surfaces(
-    df: pd.DataFrame,
-    sweep_params: list,
-    param_range_dict: dict,
-    output_dir: str,
-    experiment: str,
-):
-    """Generates a single figure containing all 3D surface plots.
-
-    This function creates a 3D surface plot for each unique pair of swept
-    parameters, displaying the results for both Average Fidelity and
-    Simulation Time in a single figure.
-
-    Args:
-        df (pd.DataFrame): Dataframe containing experiment results.
-        sweep_params (list): List of swept parameters.
-        param_range_dict (dict): Dictionary mapping parameters to their ranges.
-        output_dir (str): Directory to save the generated figure.
-        experiment (str): Name of the experiment.
-    """
-    pairs = list(itertools.combinations(sweep_params, 2))
-    fig, axes = plt.subplots(
-        2, len(pairs), figsize=(24, 16), subplot_kw={"projection": "3d"}
-    )
-    fig.subplots_adjust(wspace=1, hspace=1)
-
-    # Ensure axes are correctly formatted when only one pair exists
-    if len(pairs) == 1:
-        axes = np.array([[axes[0]], [axes[1]]])
-
-    for row, metric_name, cmap_style in zip(
-        range(2), [FIDELITY, TIME], ["magma", "viridis"]
-    ):
-        for col, (p, q) in enumerate(pairs):
-            ax = axes[row, col]
-            pivot = df.pivot_table(
-                index=p, columns=q, values=metric_name, aggfunc=np.mean
-            )
-            metric_matrix = pivot.values
-            x = param_range_dict[p]
-            y = param_range_dict[q]
-            x_mesh, y_mesh = np.meshgrid(x, y)
-            surf = ax.plot_surface(
-                x_mesh, y_mesh, metric_matrix, cmap=cmap_style, edgecolor="none"
-            )
-            fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
-            ax.set_xlabel(truncate_param(q), fontsize=14)
-            ax.set_ylabel(truncate_param(p), fontsize=14)
-            ax.set_title(
-                f"{truncate_param(p)} vs {truncate_param(q)}",
-                fontsize=16,
-                fontweight="bold",
-            )
-
-    plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_3d_surfaces.png")
-    plt.savefig(filename, dpi=1000)
-    plt.close()
-    print(f"Saved all 3D surface plots to {filename}")
-
-
-def plot_combined_heatmaps(
-    df: pd.DataFrame,
-    sweep_params: list,
-    param_range_dict: dict,
-    output_dir: str,
-    experiment: str,
-):
-    """Generates a single figure containing all 2D heatmaps.
-
-    This function creates heatmaps for each unique pair of swept parameters,
-    displaying the results for both Average Fidelity and Simulation Time in
-    a single figure.
-
-    Args:
-        df (pd.DataFrame): Dataframe containing experiment results.
-        sweep_params (list): List of swept parameters.
-        param_range_dict (dict): Dictionary mapping parameters to their ranges.
-        output_dir (str): Directory to save the generated figure.
-        experiment (str): Name of the experiment.
-    """
-    pairs = list(itertools.combinations(sweep_params, 2))
-    fig, axes = plt.subplots(2, len(pairs), figsize=(24, 16))
-    fig.subplots_adjust(wspace=1, hspace=1)
-
-    # Ensure axes are correctly formatted when only one pair exists
-    if len(pairs) == 1:
-        axes = np.array([[axes[0]], [axes[1]]])
-
-    for row, metric_name, cmap_style in zip(
-        range(2), [FIDELITY, TIME], ["magma", "viridis"]
-    ):
-        for col, (p, q) in enumerate(pairs):
-            ax = axes[row, col]
-            pivot = df.pivot_table(
-                index=p, columns=q, values=metric_name, aggfunc=np.mean
-            )
-            metric_matrix = pivot.values
-            im = ax.imshow(
-                metric_matrix,
-                extent=[
-                    param_range_dict[q][0],
-                    param_range_dict[q][-1],
-                    param_range_dict[p][0],
-                    param_range_dict[p][-1],
-                ],
-                origin="lower",
-                aspect="auto",
-                cmap=cmap_style,
-            )
-            cbar = fig.colorbar(im, ax=ax)
-            cbar.set_label(metric_name, fontsize=14)
-            ax.set_xlabel(truncate_param(q), fontsize=14)
-            ax.set_ylabel(truncate_param(p), fontsize=14)
-            ax.set_title(
-                f"{truncate_param(p)} vs {truncate_param(q)}",
-                fontsize=16,
-                fontweight="bold",
-            )
-
-    plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_heatmaps.png")
-    plt.savefig(filename, dpi=1000)
-    plt.close()
-    print(f"Saved all heatmaps to {filename}")
+from utils import (
+    create_unique_dir,
+    parse_range,
+    plot_combined_3d_surfaces,
+    plot_combined_heatmaps,
+    plot_parameter_metric_correlation,
+)
 
 
 # =============================================================================
@@ -280,7 +105,13 @@ def sweep_parameters(
         avg_fid = np.mean([res[0] for res in bob_results]) * 100
         avg_time = np.mean([res[1] for res in bob_results])
         results.append(
-            dict(zip(sweep_params, comb), **{FIDELITY: avg_fid, TIME: avg_time})
+            dict(
+                zip(sweep_params, comb),
+                **{
+                    "Average Fidelity (%)": avg_fid,
+                    "Average Simulation Time (ms)": avg_time,
+                },
+            )
         )
 
     df = pd.DataFrame(results)
@@ -360,7 +191,11 @@ def main():
 
         # Generate correlation heatmap
         plot_parameter_metric_correlation(
-            df, sweep_params, [FIDELITY, TIME], unique_output_dir, args.experiment
+            df,
+            sweep_params,
+            ["Average Fidelity (%)", "Average Simulation Time (ms)"],
+            unique_output_dir,
+            args.experiment,
         )
 
         # Build parameter range dictionary
