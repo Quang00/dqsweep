@@ -17,37 +17,24 @@ Experiment details:
     fidelity against the reference state.
 """
 
-import numpy as np
 from netqasm.sdk import Qubit
 from netqasm.sdk.toolbox.state_prep import set_qubit_state
 from netsquid.qubits.dmutil import dm_fidelity
 from netsquid.util.simtools import MILLISECOND, sim_time
+
 from squidasm.sim.stack.common import LogManager
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state, get_reference_state
 from squidasm.util.routines import teleport_recv, teleport_send
+
+from utils import extract_params_from_dm
+
 
 # =============================================================================
 # Constants: Fixed Qubit State Parameters
 # =============================================================================
 THETA = 0.0
 PHI = 0.0
-
-
-def extract_params_from_dm(dm):
-    """
-    Extract phase (phi) and amplitude (theta) from a density matrix.
-
-    Args:
-        dm (ndarray): 2x2 density matrix.
-
-    Returns:
-        tuple: (phi, theta) extracted values.
-    """
-    a = np.clip(np.sqrt(np.real(dm[0, 0])), 0.0, 1.0)
-    theta = 2 * np.arccos(a)
-    phi = (-np.angle(dm[0, 1]) if abs(dm[0, 1]) > 1e-12 else 0.0) % (2 * np.pi)
-    return phi, theta
 
 
 # =============================================================================
