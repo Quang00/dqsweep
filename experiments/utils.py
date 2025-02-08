@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+# =============================================================================
+# Constants
+# =============================================================================
+LOG_SCALE_PARAMS = {"length", "T1", "T2"}
+
 
 # =============================================================================
 # Helper Functions
@@ -43,17 +48,22 @@ def create_unique_dir(directory: str) -> str:
     return new_dir
 
 
-def parse_range(range_str: str) -> np.ndarray:
+def parse_range(range_str: str, param_name: str) -> np.ndarray:
     """Parses a range string and returns a numpy array of values.
+
+    Uses logarithmic scaling if the parameter is in LOG_SCALE_PARAMS.
 
     Args:
         range_str (str): Range in format "start,end,points".
+        param_name (str): The name of the parameter being parsed.
 
     Returns:
         np.ndarray: Array of evenly spaced values.
     """
     try:
         start, end, points = map(float, range_str.split(","))
+        if param_name in LOG_SCALE_PARAMS:
+            return np.logspace(np.log10(start), np.log10(end), int(points))
         return np.linspace(start, end, int(points))
     except ValueError:
         raise ValueError("Invalid range format. Use 'start,end,points'.") from None
@@ -130,10 +140,6 @@ def plot_combined_3d_surfaces(
 ):
     """Generates a single figure containing all 3D surface plots.
 
-    This function creates a 3D surface plot for each unique pair of swept
-    parameters, displaying the results for both Average Fidelity and
-    Simulation Time in a single figure.
-
     Args:
         df (pd.DataFrame): Dataframe containing experiment results.
         sweep_params (list): List of swept parameters.
@@ -143,11 +149,10 @@ def plot_combined_3d_surfaces(
     """
     pairs = list(itertools.combinations(sweep_params, 2))
     fig, axes = plt.subplots(
-        2, len(pairs), figsize=(24, 16), subplot_kw={"projection": "3d"}
+        2, len(pairs), figsize=(12 * len(pairs), 16), subplot_kw={"projection": "3d"}
     )
     fig.subplots_adjust(wspace=1, hspace=1)
 
-    # Ensure axes are correctly formatted when only one pair exists
     if len(pairs) == 1:
         axes = np.array([[axes[0]], [axes[1]]])
 
@@ -158,15 +163,21 @@ def plot_combined_3d_surfaces(
     ):
         for col, (p, q) in enumerate(pairs):
             ax = axes[row, col]
+
+            # Generate pivot table for metric
             pivot = df.pivot_table(
                 index=p, columns=q, values=metric_name, aggfunc=np.mean
             )
             metric_matrix = pivot.values
+
+            # Ensure correct meshgrid
             x = param_range_dict[p]
             y = param_range_dict[q]
-            x_mesh, y_mesh = np.meshgrid(x, y)
+            x_mesh, y_mesh = np.meshgrid(x, y, indexing="ij")
+
+            # Transpose metric_matrix to align with meshgrid
             surf = ax.plot_surface(
-                x_mesh, y_mesh, metric_matrix, cmap=cmap_style, edgecolor="none"
+                x_mesh, y_mesh, metric_matrix.T, cmap=cmap_style, edgecolor="none"
             )
             fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
             ax.set_xlabel(truncate_param(q), fontsize=14)
@@ -193,10 +204,6 @@ def plot_combined_heatmaps(
 ):
     """Generates a single figure containing all 2D heatmaps.
 
-    This function creates heatmaps for each unique pair of swept parameters,
-    displaying the results for both Average Fidelity and Simulation Time in
-    a single figure.
-
     Args:
         df (pd.DataFrame): Dataframe containing experiment results.
         sweep_params (list): List of swept parameters.
@@ -205,10 +212,9 @@ def plot_combined_heatmaps(
         experiment (str): Name of the experiment.
     """
     pairs = list(itertools.combinations(sweep_params, 2))
-    fig, axes = plt.subplots(2, len(pairs), figsize=(24, 16))
+    fig, axes = plt.subplots(2, len(pairs), figsize=(12 * len(pairs), 16))
     fig.subplots_adjust(wspace=1, hspace=1)
 
-    # Ensure axes are correctly formatted when only one pair exists
     if len(pairs) == 1:
         axes = np.array([[axes[0]], [axes[1]]])
 
@@ -219,17 +225,19 @@ def plot_combined_heatmaps(
     ):
         for col, (p, q) in enumerate(pairs):
             ax = axes[row, col]
+            # Generate pivot table for metric
             pivot = df.pivot_table(
                 index=p, columns=q, values=metric_name, aggfunc=np.mean
             )
             metric_matrix = pivot.values
+
             im = ax.imshow(
-                metric_matrix,
+                metric_matrix.T,
                 extent=[
                     param_range_dict[q][0],
-                    param_range_dict[q][-1],
-                    param_range_dict[p][0],
+                    param_range_dict[q][-1],  # X-axis
                     param_range_dict[p][-1],
+                    param_range_dict[p][0],  # Y-axis
                 ],
                 origin="lower",
                 aspect="auto",

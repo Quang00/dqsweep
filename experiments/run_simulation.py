@@ -74,12 +74,16 @@ def sweep_parameters(
         pd.DataFrame: Dataframe of results.
     """
     os.makedirs(output_dir, exist_ok=True)
+
     param_ranges = {
-        param: parse_range(rng_str) for param, rng_str in zip(sweep_params, ranges)
+        param: parse_range(rng_str, param)
+        for param, rng_str in zip(sweep_params, ranges)
     }
+
     combinations = list(
-        itertools.product(*(param_ranges[name] for name in sweep_params))
+        itertools.product(*[param_ranges[name] for name in sweep_params])
     )
+
     results = []
 
     alice_cls, bob_cls = {
@@ -127,10 +131,10 @@ def main():
 
     """
     parser = argparse.ArgumentParser(
-        description="Run simulation, perform parameter sweep, and generate plots."
+        description="Simulate quantum network experiments with sweep parameters."
     )
     parser.add_argument(
-        "--config", type=str, required=True, help="Path to the configuration YAML file."
+        "--config", type=str, required=True, help="Path to the configuration."
     )
     parser.add_argument(
         "--experiment",
@@ -139,7 +143,7 @@ def main():
         help="Experiment to simulate (cnot, teleportation, pingpong).",
     )
     parser.add_argument(
-        "--epr_rounds", type=int, default=10, help="Number of EPR rounds (default 10)."
+        "--epr_rounds", type=int, default=10, help="Number of EPR rounds."
     )
     parser.add_argument(
         "--num_experiments",
@@ -200,7 +204,7 @@ def main():
 
         # Build parameter range dictionary
         param_range_dict = {
-            param: parse_range(rng_str)
+            param: parse_range(rng_str, param)
             for param, rng_str in zip(sweep_params, args.ranges)
         }
 
