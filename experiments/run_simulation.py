@@ -109,8 +109,8 @@ def sweep_parameters(
         all_fid_results = [res[0] for res in bob_results]
         all_time_results = [res[1] for res in bob_results]
 
-        avg_fid = np.mean([res[0] for res in bob_results]) * 100
-        avg_time = np.mean([res[1] for res in bob_results])
+        avg_fid = np.mean(all_fid_results) * 100
+        avg_time = np.mean(all_time_results)
 
         results.append(
             dict(
