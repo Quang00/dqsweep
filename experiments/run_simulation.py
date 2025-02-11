@@ -106,12 +106,18 @@ def sweep_parameters(
             },
             num_times=num_experiments,
         )
+        all_fid_results = [res[0] for res in bob_results]
+        all_time_results = [res[1] for res in bob_results]
+
         avg_fid = np.mean([res[0] for res in bob_results]) * 100
         avg_time = np.mean([res[1] for res in bob_results])
+
         results.append(
             dict(
                 zip(sweep_params, comb),
                 **{
+                    "Fidelity Results": all_fid_results,
+                    "Simulation Time Results": all_time_results,
                     "Average Fidelity (%)": avg_fid,
                     "Average Simulation Time (ms)": avg_time,
                 },

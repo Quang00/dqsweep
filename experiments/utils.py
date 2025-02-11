@@ -5,10 +5,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from typing import Union
+
+
 # =============================================================================
 # Constants
 # =============================================================================
-LOG_SCALE_PARAMS = {"length", "T1", "T2"}
+LOG_SCALE_PARAMS = {"length", "T1", "T2", "single_qubit_gate_time", "two_qubit_gate_time"}
 
 
 # =============================================================================
@@ -27,7 +30,7 @@ def truncate_param(name: str, n: int = 3) -> str:
     return " ".join(name.split("_")[:n])
 
 
-def create_subdir(directory: str, experiment: str, sweep_params: list | str) -> str:
+def create_subdir(directory: str, experiment: str, sweep_params: Union[list, str]) -> str:
     """Creates a structured subdirectory for storing experiment results.
 
     Args:
@@ -82,22 +85,6 @@ def parse_range(range_str: str, param_name: str) -> np.ndarray:
         return np.linspace(start, end, int(points))
     except ValueError:
         raise ValueError("Invalid range format. Use 'start,end,points'.") from None
-
-
-def extract_params_from_dm(dm):
-    """
-    Extract phase (phi) and amplitude (theta) from a density matrix.
-
-    Args:
-        dm (ndarray): 2x2 density matrix.
-
-    Returns:
-        tuple: (phi, theta) extracted values.
-    """
-    a = np.clip(np.sqrt(np.real(dm[0, 0])), 0.0, 1.0)
-    theta = 2 * np.arccos(a)
-    phi = (-np.angle(dm[0, 1]) if abs(dm[0, 1]) > 1e-12 else 0.0) % (2 * np.pi)
-    return phi, theta
 
 
 # =============================================================================
@@ -247,12 +234,12 @@ def plot_combined_heatmaps(
             metric_matrix = pivot.values
 
             im = ax.imshow(
-                metric_matrix.T,
+                metric_matrix,
                 extent=[
                     param_range_dict[q][0],
                     param_range_dict[q][-1],  # X-axis
-                    param_range_dict[p][-1],
                     param_range_dict[p][0],  # Y-axis
+                    param_range_dict[p][-1],
                 ],
                 origin="lower",
                 aspect="auto",

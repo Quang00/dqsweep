@@ -3,7 +3,17 @@
 This project is a tool to analyze the effects of multiple parameters of a quantum network using netsquid and squidasm for some experiments (Distributed CNOT, Teleportation CNOT, Ping pong teleportation).
 
 ## Installation
-
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --U pip
+python3 -m pip --V
+export NETSQUIDPYPI_USER=user1234
+export NETSQUIDPYPI_PWD=password1234
+git clone git@github.com:QuTech-Delft/squidasm.git
+cd squidasm
+make install
+```
 
 
 
