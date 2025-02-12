@@ -97,6 +97,8 @@ class AlicePingpongTeleportation(Program):
             else:
                 qubit = yield from teleport_recv(context, peer_name=self.PEER_NAME)
 
+        yield from context.connection.flush()
+
         return {}
 
 
@@ -154,6 +156,7 @@ class BobPingpongTeleportation(Program):
         """
         fidelities = []
         simulation_times = []
+
         for epr_round in range(self._num_epr_rounds):
             if epr_round % 2 == 0:
                 qubit = yield from teleport_recv(context, peer_name=self.PEER_NAME)
@@ -166,5 +169,8 @@ class BobPingpongTeleportation(Program):
         fid = dm_fidelity(dm_received, dm_expected, dm_check=False)
         fidelities.append(fid)
         simulation_times.append(sim_time(MILLISECOND))
+        qubit.free()
+
+        yield from context.connection.flush()
 
         return fidelities, simulation_times

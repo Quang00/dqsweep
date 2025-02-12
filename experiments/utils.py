@@ -168,7 +168,7 @@ def plot_combined_3d_surfaces(
 
             # Generate pivot table for metric
             pivot = df.pivot_table(
-                index=p, columns=q, values=metric_name, aggfunc=np.mean
+                index=p, columns=q, values=metric_name, aggfunc="mean"
             )
             metric_matrix = pivot.values
 
@@ -229,7 +229,7 @@ def plot_combined_heatmaps(
             ax = axes[row, col]
             # Generate pivot table for metric
             pivot = df.pivot_table(
-                index=p, columns=q, values=metric_name, aggfunc=np.mean
+                index=p, columns=q, values=metric_name, aggfunc="mean"
             )
             metric_matrix = pivot.values
 
