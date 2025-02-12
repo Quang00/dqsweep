@@ -125,8 +125,6 @@ class BobPingpongTeleportation(Program):
         super().__init__()
         self._num_epr_rounds = num_epr_rounds
         self.logger = LogManager.get_stack_logger(self.__class__.__name__)
-        self.fidelities: list[float] = []
-        self.simulation_times: list[float] = []
 
     @property
     def meta(self) -> ProgramMeta:
@@ -154,6 +152,8 @@ class BobPingpongTeleportation(Program):
             tuple[list[float], list[float]]: Lists containing fidelities and
             simulation times for each round.
         """
+        fidelities = []
+        simulation_times = []
         for epr_round in range(self._num_epr_rounds):
             if epr_round % 2 == 0:
                 qubit = yield from teleport_recv(context, peer_name=self.PEER_NAME)
@@ -162,11 +162,9 @@ class BobPingpongTeleportation(Program):
                 yield from teleport_send(qubit, context, peer_name=self.PEER_NAME)
 
         dm_received = get_qubit_state(qubit, "Bob")
-        print(dm_received)
         dm_expected = get_reference_state(PHI, THETA)
-        print(dm_expected)
-        fid = dm_fidelity(dm_received, dm_expected, dm_check=True)
-        self.fidelities.append(fid)
-        self.simulation_times.append(sim_time(MILLISECOND))
+        fid = dm_fidelity(dm_received, dm_expected, dm_check=False)
+        fidelities.append(fid)
+        simulation_times.append(sim_time(MILLISECOND))
 
-        return self.fidelities, self.simulation_times
+        return fidelities, simulation_times
