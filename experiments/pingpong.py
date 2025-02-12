@@ -15,6 +15,7 @@ Experiment details:
     during odd rounds.
 """
 
+import numpy as np
 
 from netqasm.sdk import Qubit
 from netqasm.sdk.toolbox.state_prep import set_qubit_state
@@ -31,7 +32,7 @@ from squidasm.util.routines import teleport_recv, teleport_send
 # Constants: Fixed Qubit State Parameters
 # =============================================================================
 PHI = 0.0
-THETA = 0.0
+THETA = np.pi/2
 
 
 # =============================================================================

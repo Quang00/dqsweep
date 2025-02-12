@@ -14,9 +14,7 @@ cd squidasm
 make install
 ```
 
-
-
-## Examples of command to run the program
+## Examples of command
 ---
 
 ```bash
@@ -24,17 +22,27 @@ python experiments/run_simulation.py \
   --config configurations/perfect.yaml \
   --experiment cnot \
   --epr_rounds 10 \
-  --num_experiments 10 \
+  --num_experiments 100 \
   --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
   --ranges "0.0,0.8,10" "0.0,0.8,10"
 ```
 
 ```bash
 python experiments/run_simulation.py \
-  --config configurations/generic_qdevice.yaml \
+  --config configurations/perfect.yaml \
+  --experiment cnot \
+  --epr_rounds 10 \
+  --num_experiments 100 \
+  --sweep_params single_qubit_gate_time,two_qubit_gate_time \
+  --ranges "0.0,0.8,10" "0.0,0.8,10"
+```
+
+```bash
+python experiments/run_simulation.py \
+  --config configurations/perfect.yaml \
   --experiment pingpong \
   --epr_rounds 10 \
   --num_experiments 10 \
-  --sweep_params T1, T2, single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
+  --sweep_params T1,T2,single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
   --ranges "1e10,10e7,10" "1e10,10e7,10" "0.0,0.8,10" "0.0,0.8,10"
 ```
