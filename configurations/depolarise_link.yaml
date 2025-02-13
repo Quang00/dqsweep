@@ -1,5 +1,4 @@
-# A configuration with a perfect generic qdevice and a link with depolarizing noise model
-# Perfect 2 node network, no noise from either computation on the nodes or communication between nodes
+# A configuration with a perfect generic qdevice and a perfect depolarizing link model
 qdevice_cfg: &qdevice_cfg
   num_qubits: 2
 
