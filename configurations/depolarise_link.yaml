@@ -1,15 +1,17 @@
 # A configuration with a perfect generic qdevice and a link with depolarizing noise model
+# Perfect 2 node network, no noise from either computation on the nodes or communication between nodes
 qdevice_cfg: &qdevice_cfg
   num_qubits: 2
+
   # coherence times (same for each qubit)
-  T1: 10_000_000
-  T2: 10_000_000
+  T1: 0
+  T2: 0
 
   # gate execution times
-  init_time: 10_00
-  single_qubit_gate_time: 10_00
-  two_qubit_gate_time: 10_000
-  measure_time: 10_00
+  init_time: 0
+  single_qubit_gate_time: 0
+  two_qubit_gate_time: 0
+  measure_time: 0
 
   # noise model
   single_qubit_gate_depolar_prob: 0
@@ -29,9 +31,9 @@ link_cfg: &link_cfg
   # Fidelity between the EPR pair qubits
   fidelity: 1.0
   # Time in nanoseconds for an attempt to generated entanglement
-  t_cycle: 10000000.
+  t_cycle: 10.
   # Chance for each attempt at entanglement to succeed
-  prob_success: 0.5
+  prob_success: 1.0
 
 links:
   - stack1: Alice

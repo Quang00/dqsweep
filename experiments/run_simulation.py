@@ -173,6 +173,10 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.experiment == "pingpong" and args.epr_rounds % 2 == 0:
+        print("ArgumentError: You need to specify an odd number of epr rounds.")
+        return
+
     unique_output_dir = create_subdir(args.output_dir, args.experiment, args.sweep_params)
     print(f"Using output directory: {unique_output_dir}")
 
@@ -216,10 +220,10 @@ def main():
 
         # Generate visualizations
         plot_combined_3d_surfaces(
-            df, sweep_params, param_range_dict, unique_output_dir, args.experiment
+            df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds
         )
         plot_combined_heatmaps(
-            df, sweep_params, param_range_dict, unique_output_dir, args.experiment
+            df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds
         )
     else:
         print("No sweep parameters provided. Running single configuration simulation.")

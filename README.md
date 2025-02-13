@@ -39,6 +39,16 @@ python experiments/run_simulation.py \
 
 ```bash
 python experiments/run_simulation.py \
+  --config configurations/depolarise_link.yaml \
+  --experiment pingpong \
+  --epr_rounds 3 \
+  --num_experiments 1000 \
+  --sweep_params fidelity,prob_success \
+  --ranges "0.3,1.0,10" "0.3,1.0,10"
+```
+
+```bash
+python experiments/run_simulation.py \
   --config configurations/perfect.yaml \
   --experiment pingpong \
   --epr_rounds 10 \

@@ -1,17 +1,21 @@
 import itertools
 import os
+from typing import Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from typing import Union
-
-
 # =============================================================================
 # Constants
 # =============================================================================
-LOG_SCALE_PARAMS = {"length", "T1", "T2", "single_qubit_gate_time", "two_qubit_gate_time"}
+LOG_SCALE_PARAMS = {
+    "length",
+    "T1",
+    "T2",
+    "single_qubit_gate_time",
+    "two_qubit_gate_time",
+}
 
 
 # =============================================================================
@@ -30,7 +34,9 @@ def truncate_param(name: str, n: int = 3) -> str:
     return " ".join(name.split("_")[:n])
 
 
-def create_subdir(directory: str, experiment: str, sweep_params: Union[list, str]) -> str:
+def create_subdir(
+    directory: str, experiment: str, sweep_params: Union[list, str]
+) -> str:
     """Creates a structured subdirectory for storing experiment results.
 
     Args:
@@ -139,6 +145,7 @@ def plot_combined_3d_surfaces(
     param_range_dict: dict,
     output_dir: str,
     experiment: str,
+    epr_rounds: int,
 ):
     """Generates a single figure containing all 3D surface plots.
 
@@ -148,6 +155,7 @@ def plot_combined_3d_surfaces(
         param_range_dict (dict): Dictionary mapping parameters to their ranges.
         output_dir (str): Directory to save the generated figure.
         experiment (str): Name of the experiment.
+        epr_rounds (int): Number of epr rounds.
     """
     pairs = list(itertools.combinations(sweep_params, 2))
     fig, axes = plt.subplots(
@@ -184,11 +192,18 @@ def plot_combined_3d_surfaces(
             fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
             ax.set_xlabel(truncate_param(q), fontsize=14)
             ax.set_ylabel(truncate_param(p), fontsize=14)
-            ax.set_title(
-                f"{truncate_param(p)} vs {truncate_param(q)}",
-                fontsize=16,
-                fontweight="bold",
-            )
+            if experiment == "pingpong":
+                ax.set_title(
+                    f"{truncate_param(p)} vs {truncate_param(q)} with {epr_rounds}",
+                    fontsize=16,
+                    fontweight="bold",
+                )
+            else:
+                ax.set_title(
+                    f"{truncate_param(p)} vs {truncate_param(q)}",
+                    fontsize=16,
+                    fontweight="bold",
+                )
 
     plt.tight_layout()
     filename = os.path.join(output_dir, f"{experiment}_3d_surfaces.png")
@@ -203,6 +218,7 @@ def plot_combined_heatmaps(
     param_range_dict: dict,
     output_dir: str,
     experiment: str,
+    epr_rounds: int,
 ):
     """Generates a single figure containing all 2D heatmaps.
 
@@ -212,6 +228,7 @@ def plot_combined_heatmaps(
         param_range_dict (dict): Dictionary mapping parameters to their ranges.
         output_dir (str): Directory to save the generated figure.
         experiment (str): Name of the experiment.
+        epr_rounds (int): Number of epr rounds.
     """
     pairs = list(itertools.combinations(sweep_params, 2))
     fig, axes = plt.subplots(2, len(pairs), figsize=(12 * len(pairs), 16))
@@ -250,7 +267,11 @@ def plot_combined_heatmaps(
             ax.set_xlabel(truncate_param(q), fontsize=14)
             ax.set_ylabel(truncate_param(p), fontsize=14)
             ax.set_title(
-                f"{truncate_param(p)} vs {truncate_param(q)}",
+                (
+                    f"{truncate_param(p)} vs {truncate_param(q)} with {epr_rounds} hops"
+                    if experiment == "pingpong"
+                    else f"{truncate_param(p)} vs {truncate_param(q)}"
+                ),
                 fontsize=16,
                 fontweight="bold",
             )
