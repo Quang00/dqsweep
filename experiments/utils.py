@@ -21,17 +21,18 @@ LOG_SCALE_PARAMS = {
 # =============================================================================
 # Helper Functions
 # =============================================================================
-def truncate_param(name: str, n: int = 3) -> str:
+def truncate_param(name: str, char: str = '_', n: int = 4) -> str:
     """Truncates a parameter name to improve readability in plots.
 
     Args:
         name (str): Parameter name to truncate.
-        n (int, optional): Number of tokens to keep. Defaults to 3.
+        char (str, optional): Character to split the name. Defaults to "_".
+        n (int, optional): Number of tokens to keep. Defaults to 4.
 
     Returns:
         str: Truncated parameter name.
     """
-    return " ".join(name.split("_")[:n])
+    return " ".join(name.split(char)[:n]).capitalize()
 
 
 def create_subdir(
@@ -123,6 +124,7 @@ def plot_parameter_metric_correlation(
         ax.barh(x + (i * width), corr_subset[metric], width, label=metric)
 
     ax.set_yticks(x + width / 2)
+    sweep_params = [truncate_param(param) for param in sweep_params]
     ax.set_yticklabels(sweep_params, fontsize=14)
     ax.set_xlabel("Correlation Coefficient", fontsize=14)
     ax.set_title(
@@ -192,22 +194,16 @@ def plot_combined_3d_surfaces(
             fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
             ax.set_xlabel(truncate_param(q), fontsize=14)
             ax.set_ylabel(truncate_param(p), fontsize=14)
-            if experiment == "pingpong":
-                ax.set_title(
-                    f"{truncate_param(p)} vs {truncate_param(q)} with {epr_rounds}",
+            title_suffix = f" with {epr_rounds} hops" if experiment == "pingpong" else ""
+            ax.set_title(
+                    f"{truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
                     fontsize=16,
                     fontweight="bold",
-                )
-            else:
-                ax.set_title(
-                    f"{truncate_param(p)} vs {truncate_param(q)}",
-                    fontsize=16,
-                    fontweight="bold",
-                )
+            )
 
     plt.tight_layout()
     filename = os.path.join(output_dir, f"{experiment}_3d_surfaces.png")
-    plt.savefig(filename, dpi=1000)
+    plt.savefig(filename, dpi=300)
     plt.close()
     print(f"Saved all 3D surface plots to {filename}")
 
@@ -219,65 +215,82 @@ def plot_combined_heatmaps(
     output_dir: str,
     experiment: str,
     epr_rounds: int,
+    separate_files: bool = False,
 ):
-    """Generates a single figure containing all 2D heatmaps.
+    """Generates heatmaps from experiment results.
+
+    If `separate_files` is True, two separate figures will be created:
+    one for Average Fidelity and one for Average Simulation Time.
+    Otherwise, a single combined figure is generated.
 
     Args:
         df (pd.DataFrame): Dataframe containing experiment results.
         sweep_params (list): List of swept parameters.
         param_range_dict (dict): Dictionary mapping parameters to their ranges.
-        output_dir (str): Directory to save the generated figure.
+        output_dir (str): Directory to save the generated figures.
         experiment (str): Name of the experiment.
         epr_rounds (int): Number of epr rounds.
+        separate_files (bool, optional): If True, save each metric in a separate file.
     """
+
     pairs = list(itertools.combinations(sweep_params, 2))
-    fig, axes = plt.subplots(2, len(pairs), figsize=(12 * len(pairs), 16))
-    fig.subplots_adjust(wspace=1, hspace=1)
+    metrics = [
+        {"name": "Average Fidelity (%)", "cmap": "magma", "file_label": "fidelity"},
+        {"name": "Average Simulation Time (ms)", "cmap": "viridis", "file_label": "sim_times"},
+    ]
 
-    if len(pairs) == 1:
-        axes = np.array([[axes[0]], [axes[1]]])
+    # Plot an individual heatmap on a given axes.
+    def plot_heatmap(ax, p, q, metric):
+        pivot = df.pivot_table(index=p, columns=q, values=metric["name"], aggfunc="mean")
+        metric_matrix = pivot.values
+        im = ax.imshow(
+            metric_matrix,
+            extent=[
+                param_range_dict[q][0],
+                param_range_dict[q][-1],  # X-axis
+                param_range_dict[p][0],
+                param_range_dict[p][-1],  # Y-axis
+            ],
+            origin="lower",
+            aspect="auto",
+            cmap=metric["cmap"],
+        )
+        cbar = ax.figure.colorbar(im, ax=ax)
+        cbar.set_label(metric["name"], fontsize=14)
+        ax.set_xlabel(truncate_param(q), fontsize=14)
+        ax.set_ylabel(truncate_param(p), fontsize=14)
+        title_suffix = f" with {epr_rounds} hops" if experiment == "pingpong" else ""
+        ax.set_title(
+            f"{truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
+            fontsize=16,
+            fontweight="bold",
+        )
 
-    for row, metric_name, cmap_style in zip(
-        range(2),
-        ["Average Fidelity (%)", "Average Simulation Time (ms)"],
-        ["magma", "viridis"],
-    ):
-        for col, (p, q) in enumerate(pairs):
-            ax = axes[row, col]
-            # Generate pivot table for metric
-            pivot = df.pivot_table(
-                index=p, columns=q, values=metric_name, aggfunc="mean"
-            )
-            metric_matrix = pivot.values
-
-            im = ax.imshow(
-                metric_matrix,
-                extent=[
-                    param_range_dict[q][0],
-                    param_range_dict[q][-1],  # X-axis
-                    param_range_dict[p][0],  # Y-axis
-                    param_range_dict[p][-1],
-                ],
-                origin="lower",
-                aspect="auto",
-                cmap=cmap_style,
-            )
-            cbar = fig.colorbar(im, ax=ax)
-            cbar.set_label(metric_name, fontsize=14)
-            ax.set_xlabel(truncate_param(q), fontsize=14)
-            ax.set_ylabel(truncate_param(p), fontsize=14)
-            ax.set_title(
-                (
-                    f"{truncate_param(p)} vs {truncate_param(q)} with {epr_rounds} hops"
-                    if experiment == "pingpong"
-                    else f"{truncate_param(p)} vs {truncate_param(q)}"
-                ),
-                fontsize=16,
-                fontweight="bold",
-            )
-
-    plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_heatmaps.png")
-    plt.savefig(filename, dpi=1000)
-    plt.close()
-    print(f"Saved all heatmaps to {filename}")
+    if separate_files:
+        # Generate and save one figure per metric.
+        for metric in metrics:
+            fig, axes = plt.subplots(1, len(pairs), figsize=(12 * len(pairs), 8))
+            if len(pairs) == 1:
+                axes = [axes]  # Ensure axes is iterable if only one pair exists.
+            for ax, (p, q) in zip(axes, pairs):
+                plot_heatmap(ax, p, q, metric)
+            plt.tight_layout()
+            suffix = f"{(epr_rounds + 1) // 2}" if experiment == "pingpong" else ""
+            filename = os.path.join(output_dir, f"{experiment}_heatmap_{metric['file_label']}_{suffix}.png")
+            plt.savefig(filename, dpi=300)
+            plt.close(fig)
+            print(f"Saved {metric['name']} heatmap to {filename}")
+    else:
+        # Create a single combined figure with one row per metric.
+        fig, axes = plt.subplots(len(metrics), len(pairs), figsize=(12 * len(pairs), 8 * len(metrics)))
+        # Ensure axes is 2D even when there's only one pair.
+        if len(pairs) == 1:
+            axes = np.array([axes]).reshape(len(metrics), 1)
+        for i, metric in enumerate(metrics):
+            for j, (p, q) in enumerate(pairs):
+                plot_heatmap(axes[i, j], p, q, metric)
+        plt.tight_layout()
+        filename = os.path.join(output_dir, f"{experiment}_heatmaps.png")
+        plt.savefig(filename, dpi=300)
+        plt.close(fig)
+        print(f"Saved combined heatmaps to {filename}")
