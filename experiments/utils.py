@@ -88,7 +88,7 @@ def parse_range(range_str: str, param_name: str) -> np.ndarray:
     try:
         start, end, points = map(float, range_str.split(","))
         if param_name in LOG_SCALE_PARAMS:
-            return np.logspace(np.log10(start), np.log10(end), int(points))
+            return np.logspace(start, end, int(points))
         return np.linspace(start, end, int(points))
     except ValueError:
         raise ValueError("Invalid range format. Use 'start,end,points'.") from None
@@ -128,7 +128,7 @@ def plot_parameter_metric_correlation(
     ax.set_yticklabels(sweep_params, fontsize=14)
     ax.set_xlabel("Correlation Coefficient", fontsize=14)
     ax.set_title(
-        f"{experiment.capitalize()} Parameter-Performance Correlation",
+        f"{experiment.capitalize()}: Parameter-Performance Correlation",
         fontsize=16,
         fontweight="bold",
     )
@@ -196,7 +196,7 @@ def plot_combined_3d_surfaces(
             ax.set_ylabel(truncate_param(p), fontsize=14)
             title_suffix = f" with {epr_rounds} hops" if experiment == "pingpong" else ""
             ax.set_title(
-                    f"{truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
+                    f"{experiment.capitalize()}: {truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
                     fontsize=16,
                     fontweight="bold",
             )
@@ -261,7 +261,7 @@ def plot_combined_heatmaps(
         ax.set_ylabel(truncate_param(p), fontsize=14)
         title_suffix = f" with {epr_rounds} hops" if experiment == "pingpong" else ""
         ax.set_title(
-            f"{truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
+            f"{experiment.capitalize()}: {truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
             fontsize=16,
             fontweight="bold",
         )
