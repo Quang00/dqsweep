@@ -28,6 +28,7 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state
+from squidasm.util.routines import teleport_recv, teleport_send
 
 
 # =============================================================================
@@ -61,7 +62,7 @@ class AliceTeleportation(Program):
             ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
         """
         return ProgramMeta(
-            name="nonlocal_CNOT",
+            name="teleportation",
             csockets=[self.PEER_NAME],
             epr_sockets=[self.PEER_NAME],
             max_qubits=1,
@@ -102,6 +103,9 @@ class AliceTeleportation(Program):
             # Send measurement results to Bob
             csocket.send(str(a1_measurement))
             csocket.send(str(alice_measurement))
+
+            # Alice receive the state of Bob after the CNOT gate was applied
+            teleport_recv(context, self.PEER_NAME)
             yield from connection.flush()
 
         return {}
@@ -141,7 +145,7 @@ class BobTeleportation(Program):
             ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
         """
         return ProgramMeta(
-            name="nonlocal_CNOT",
+            name="teleportation",
             csockets=[self.PEER_NAME],
             epr_sockets=[self.PEER_NAME],
             max_qubits=1,
@@ -185,6 +189,10 @@ class BobTeleportation(Program):
 
             # Perform CNOT operation and measure the qubit
             b1_qubit.cnot(bob_qubit)
+
+            # Bob send back his state to Alice
+            teleport_send(bob_qubit, context, self.PEER_NAME)
+
             b1_qubit.measure()
             yield from connection.flush()
 

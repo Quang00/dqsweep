@@ -223,7 +223,7 @@ def main():
             df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds
         )
         plot_combined_heatmaps(
-            df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds, separate_files=False
+            df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds, separate_files=True
         )
     else:
         print("No sweep parameters provided. Running single configuration simulation.")
