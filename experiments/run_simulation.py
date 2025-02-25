@@ -38,6 +38,7 @@ from squidasm.run.stack.run import run
 from nonlocal_cnot import AliceProgram, BobProgram
 from pingpong import AlicePingpongTeleportation, BobPingpongTeleportation
 from teleportation import AliceTeleportation, BobTeleportation
+from grover import AliceGrover, BobGrover
 from utils import (
     create_subdir,
     parse_range,
@@ -89,6 +90,7 @@ def sweep_parameters(
     alice_cls, bob_cls = {
         "teleportation": (AliceTeleportation, BobTeleportation),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
+        "grover": (AliceGrover, BobGrover),
     }.get(experiment, (AliceProgram, BobProgram))
 
     for comb in combinations:
