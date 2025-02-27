@@ -333,6 +333,8 @@ def pingpong_initiator(
 
     In even rounds, the provided qubit is sent to the peer.
     In odd rounds, the initiator receives the qubit.
+    The formal return is a generator and requires use of `yield from`
+    in usage in order to function as intended.
 
     :param qubit: The qubit to be teleported.
     :param context: Context -> connection, csockets, and epr_sockets.
@@ -363,6 +365,8 @@ def pingpong_responder(
     The responder starts without a qubit and in the first (even) round
     receives one. In odd rounds he sends the qubit. After completing
     the rounds, Bob returns the final qubit he holds.
+    The formal return is a generator and requires use of `yield from`
+    in usage in order to function as intended.
 
     :param context: Context -> connection, csockets, and epr_sockets.
     :param peer_name: Name of the peer.

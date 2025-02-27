@@ -31,10 +31,11 @@ import os
 
 import numpy as np
 import pandas as pd
-from dqft_2 import AliceDQFT2, BobDQFT2
 from nonlocal_cnot import AliceProgram, BobProgram
 from pingpong import AlicePingpongTeleportation, BobPingpongTeleportation
 from teleportation import AliceTeleportation, BobTeleportation
+from dqft_2 import AliceDQFT2, BobDQFT2
+from dgrover_2 import AliceDGrover2, BobDGrover2
 from utils import (
     create_subdir,
     parse_range,
@@ -90,6 +91,7 @@ def sweep_parameters(
         "teleportation": (AliceTeleportation, BobTeleportation),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
         "dqft2": (AliceDQFT2, BobDQFT2),
+        "dgrover2": (AliceDGrover2, BobDGrover2),
     }.get(experiment, (AliceProgram, BobProgram))
 
     for comb in combinations:
