@@ -21,7 +21,6 @@ from netqasm.sdk.toolbox.state_prep import set_qubit_state
 from netsquid.qubits.dmutil import dm_fidelity
 from netsquid.util.simtools import MILLISECOND, sim_time
 
-from squidasm.sim.stack.common import LogManager
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state, get_reference_state
 from squidasm.util.routines import teleport_recv, teleport_send
@@ -55,9 +54,7 @@ class AlicePingpongTeleportation(Program):
         Args:
             num_epr_rounds (int): Number of EPR rounds in the experiment.
         """
-        super().__init__()
         self._num_epr_rounds = num_epr_rounds
-        self.logger = LogManager.get_stack_logger(self.__class__.__name__)
         self.initial_phi: float = PHI
         self.initial_theta: float = THETA
 
@@ -66,7 +63,7 @@ class AlicePingpongTeleportation(Program):
         """Defines metadata for Alice's teleportation program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="pingpong",
@@ -87,14 +84,12 @@ class AlicePingpongTeleportation(Program):
         """
         qubit = Qubit(context.connection)
         set_qubit_state(qubit, self.initial_phi, self.initial_theta)
-        self.logger.info("Alice created the initial qubit")
 
         for epr_round in range(self._num_epr_rounds):
             if epr_round % 2 == 0:
-                self.logger.info(f"Alice Round {epr_round}: Sending qubit")
-                yield from teleport_send(qubit, context, peer_name=self.PEER_NAME)
+                yield from teleport_send(qubit, context, self.PEER_NAME)
             else:
-                qubit = yield from teleport_recv(context, peer_name=self.PEER_NAME)
+                qubit = yield from teleport_recv(context, self.PEER_NAME)
 
         yield from context.connection.flush()
 
@@ -109,7 +104,8 @@ class BobPingpongTeleportation(Program):
 
     Bob alternates between receiving and sending qubits across multiple
     rounds. Even rounds involve receiving a qubit and extracting its state,
-    while odd rounds involve sending a qubit prepared using the extracted state.
+    while odd rounds involve sending a qubit prepared using the extracted
+    state.
 
     Args:
         num_epr_rounds (int): Number of EPR rounds for the experiment.
@@ -123,16 +119,14 @@ class BobPingpongTeleportation(Program):
         Args:
             num_epr_rounds (int): Number of EPR rounds in the experiment.
         """
-        super().__init__()
         self._num_epr_rounds = num_epr_rounds
-        self.logger = LogManager.get_stack_logger(self.__class__.__name__)
 
     @property
     def meta(self) -> ProgramMeta:
         """Defines metadata for Bob's teleportation program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="pingpong",
@@ -144,7 +138,8 @@ class BobPingpongTeleportation(Program):
     def run(self, context: ProgramContext):
         """Executes Bob's teleportation routine with alternating rounds.
 
-        In even rounds, Bob receives a qubit. In odd rounds, he sends the qubit.
+        In even rounds, Bob receives a qubit.
+        In odd rounds, he sends the qubit.
 
         Args:
             context (ProgramContext): Provides network and connection details.
@@ -158,10 +153,9 @@ class BobPingpongTeleportation(Program):
 
         for epr_round in range(self._num_epr_rounds):
             if epr_round % 2 == 0:
-                qubit = yield from teleport_recv(context, peer_name=self.PEER_NAME)
+                qubit = yield from teleport_recv(context, self.PEER_NAME)
             else:
-                self.logger.info(f"Bob Round {epr_round}: Sending qubit")
-                yield from teleport_send(qubit, context, peer_name=self.PEER_NAME)
+                yield from teleport_send(qubit, context, self.PEER_NAME)
 
         dm_received = get_qubit_state(qubit, "Bob")
         dm_expected = get_reference_state(PHI, THETA)

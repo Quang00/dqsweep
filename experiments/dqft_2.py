@@ -6,12 +6,10 @@ between two nodes (Alice and Bob).
 """
 
 import numpy as np
-
 from netqasm.sdk.classical_communication.socket import Socket
 from netqasm.sdk.connection import BaseNetQASMConnection
 from netqasm.sdk.epr_socket import EPRSocket
 from netqasm.sdk.qubit import Qubit
-
 from netsquid.qubits.dmutil import dm_fidelity
 from netsquid.util.simtools import MILLISECOND, sim_time
 
@@ -41,7 +39,7 @@ class AliceDQFT2(Program):
         """Defines metadata for Alice's DQFT2 program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="dqft",
@@ -104,16 +102,14 @@ class BobDQFT2(Program):
         """Initializes Bob's program with the specified number of rounds."""
         self._num_epr_rounds = num_epr_rounds
         self.fidelities: list[float] = []
-        self.simulation_times: list[float] = (
-            []
-        )
+        self.simulation_times: list[float] = []
 
     @property
     def meta(self) -> ProgramMeta:
         """Defines metadata for Bob's DQFT2 program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="dqft",
@@ -127,7 +123,8 @@ class BobDQFT2(Program):
         Executes Bob's part of the DQFT2.
 
         Returns:
-            tuple[list[float], list[float]]: The fidelity and simulation time lists for each round.
+            tuple[list[float], list[float]]: The fidelity and simulation time
+            lists for each round.
         """
         csocket: Socket = context.csockets[self.PEER_NAME]
         epr_socket: EPRSocket = context.epr_sockets[self.PEER_NAME]

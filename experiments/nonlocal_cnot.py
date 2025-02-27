@@ -59,7 +59,7 @@ class AliceProgram(Program):
         """Defines metadata for Alice's CNOT program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="nonlocal_CNOT",
@@ -141,7 +141,7 @@ class BobProgram(Program):
         """Defines metadata for Bob's CNOT program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="nonlocal_CNOT",
@@ -153,7 +153,7 @@ class BobProgram(Program):
     def run(self, context: ProgramContext):
         """Executes Bob's nonlocal CNOT experiment.
 
-        In each round, Bob receives an EPR pair, listens for Alice's measurement
+        In each round, Bob receives an EPR pair, wait for Alice's measurement
         results, applies corrections, and measures the final state.
 
         Args:

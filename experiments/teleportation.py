@@ -59,7 +59,7 @@ class AliceTeleportation(Program):
         """Defines metadata for Alice's teleportation program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="teleportation",
@@ -142,7 +142,7 @@ class BobTeleportation(Program):
         """Defines metadata for Bob's teleportation program.
 
         Returns:
-            ProgramMeta: Metadata including experiment name, sockets, and qubit limit.
+            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="teleportation",
@@ -154,7 +154,7 @@ class BobTeleportation(Program):
     def run(self, context: ProgramContext):
         """Executes Bob's teleportation process.
 
-        In each round, Bob receives an EPR pair, listens for Alice's measurement
+        In each round, Bob receives an EPR pair, wait for Alice's measurement
         results, applies corrections, and measures the final state.
 
         Args:

@@ -91,7 +91,7 @@ def parse_range(range_str: str, param_name: str) -> np.ndarray:
             return np.logspace(start, end, int(points))
         return np.linspace(start, end, int(points))
     except ValueError:
-        raise ValueError("Invalid range format. Use 'start,end,points'.") from None
+        raise ValueError("Invalid format. Use 'start,end,points'.") from None
 
 
 # =============================================================================
@@ -135,7 +135,7 @@ def plot_parameter_metric_correlation(
     ax.legend(title="Performance Metrics", fontsize=12)
     plt.grid(axis="x", linestyle="--", alpha=0.7)
     plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_param_metric_correlation.png")
+    filename = os.path.join(output_dir, f"{experiment}_param_correlation.png")
     plt.savefig(filename, dpi=1000)
     plt.close()
     print(f"Saved correlation bar chart to {filename}")
