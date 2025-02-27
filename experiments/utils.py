@@ -1,10 +1,14 @@
 import itertools
 import os
-from typing import Union
+from typing import Generator, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from netqasm.sdk import Qubit
+
+from squidasm.sim.stack.program import ProgramContext
+from squidasm.util.routines import teleport_recv, teleport_send
 
 # =============================================================================
 # Constants
@@ -160,8 +164,9 @@ def plot_combined_3d_surfaces(
         epr_rounds (int): Number of epr rounds.
     """
     pairs = list(itertools.combinations(sweep_params, 2))
+    figsize = (12 * len(pairs), 16)
     fig, axes = plt.subplots(
-        2, len(pairs), figsize=(12 * len(pairs), 16), subplot_kw={"projection": "3d"}
+        2, len(pairs), figsize=figsize, subplot_kw={"projection": "3d"}
     )
     fig.subplots_adjust(wspace=1, hspace=1)
 
@@ -180,7 +185,7 @@ def plot_combined_3d_surfaces(
             pivot = df.pivot_table(
                 index=p, columns=q, values=metric_name, aggfunc="mean"
             )
-            metric_matrix = pivot.values
+            matrix = pivot.values
 
             # Ensure correct meshgrid
             x = param_range_dict[p]
@@ -189,16 +194,18 @@ def plot_combined_3d_surfaces(
 
             # Transpose metric_matrix to align with meshgrid
             surf = ax.plot_surface(
-                x_mesh, y_mesh, metric_matrix.T, cmap=cmap_style, edgecolor="none"
+                x_mesh, y_mesh, matrix.T, cmap=cmap_style, edgecolor="none"
             )
             fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
-            ax.set_xlabel(truncate_param(q), fontsize=14)
-            ax.set_ylabel(truncate_param(p), fontsize=14)
+            var1 = truncate_param(q)
+            var2 = truncate_param(p)
+            ax.set_xlabel(var1, fontsize=14)
+            ax.set_ylabel(var2, fontsize=14)
             title_suffix = (
                 f" with {epr_rounds} hops" if experiment == "pingpong" else ""
             )
             ax.set_title(
-                f"{experiment.capitalize()}: {truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
+                f"{experiment.capitalize()}: {var2} vs {var1}{title_suffix}",
                 fontsize=16,
                 fontweight="bold",
             )
@@ -215,7 +222,7 @@ def plot_combined_heatmaps(
     sweep_params: list,
     param_range_dict: dict,
     output_dir: str,
-    experiment: str,
+    exp: str,
     epr_rounds: int,
     separate_files: bool = False,
 ):
@@ -232,12 +239,15 @@ def plot_combined_heatmaps(
         output_dir (str): Directory to save the generated figures.
         experiment (str): Name of the experiment.
         epr_rounds (int): Number of epr rounds.
-        separate_files (bool, optional): If True, save each metric in a separate file.
+        separate_files (bool, optional): If True, save in a separate file.
     """
 
     pairs = list(itertools.combinations(sweep_params, 2))
     metrics = [
-        {"name": "Average Fidelity (%)", "cmap": "magma", "file_label": "fidelity"},
+        {
+            "name": "Average Fidelity (%)",
+            "cmap": "magma",
+            "file_label": "fidelity"},
         {
             "name": "Average Simulation Time (ms)",
             "cmap": "viridis",
@@ -265,35 +275,39 @@ def plot_combined_heatmaps(
         )
         cbar = ax.figure.colorbar(im, ax=ax)
         cbar.set_label(metric["name"], fontsize=14)
-        ax.set_xlabel(truncate_param(q), fontsize=14)
-        ax.set_ylabel(truncate_param(p), fontsize=14)
-        title_suffix = f" with {epr_rounds} hops" if experiment == "pingpong" else ""
+        var1 = truncate_param(q)
+        var2 = truncate_param(p)
+        ax.set_xlabel(var1, fontsize=14)
+        ax.set_ylabel(var2, fontsize=14)
+        title_suffix = f" with {epr_rounds} hops" if exp == "pingpong" else ""
         ax.set_title(
-            f"{experiment.capitalize()}: {truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
+            f"{exp.capitalize()}: {var2} vs {var1}{title_suffix}",
             fontsize=16,
             fontweight="bold",
         )
 
     if separate_files:
         # Generate and save one figure per metric.
+        figsize = (12 * len(pairs), 8)
         for metric in metrics:
-            fig, axes = plt.subplots(1, len(pairs), figsize=(12 * len(pairs), 8))
+            fig, axes = plt.subplots(1, len(pairs), figsize=figsize)
             if len(pairs) == 1:
-                axes = [axes]  # Ensure axes is iterable if only one pair exists.
+                axes = [axes]
             for ax, (p, q) in zip(axes, pairs):
                 plot_heatmap(ax, p, q, metric)
             plt.tight_layout()
-            suffix = f"{(epr_rounds + 1) // 2}" if experiment == "pingpong" else ""
+            suffix = f"{(epr_rounds + 1) // 2}" if exp == "pingpong" else ""
             filename = os.path.join(
-                output_dir, f"{experiment}_heatmap_{metric['file_label']}_{suffix}.png"
+                output_dir, f"{exp}_heat_{metric['file_label']}_{suffix}.png"
             )
             plt.savefig(filename, dpi=300)
             plt.close(fig)
             print(f"Saved {metric['name']} heatmap to {filename}")
     else:
         # Create a single combined figure with one row per metric.
+        figsize = (12 * len(pairs), 8 * len(metrics))
         fig, axes = plt.subplots(
-            len(metrics), len(pairs), figsize=(12 * len(pairs), 8 * len(metrics))
+            len(metrics), len(pairs), figsize=figsize
         )
         # Ensure axes is 2D even when there's only one pair.
         if len(pairs) == 1:
@@ -302,7 +316,72 @@ def plot_combined_heatmaps(
             for j, (p, q) in enumerate(pairs):
                 plot_heatmap(axes[i, j], p, q, metric)
         plt.tight_layout()
-        filename = os.path.join(output_dir, f"{experiment}_heatmaps.png")
+        filename = os.path.join(output_dir, f"{exp}_heatmaps.png")
         plt.savefig(filename, dpi=300)
         plt.close(fig)
         print(f"Saved combined heatmaps to {filename}")
+
+
+# =============================================================================
+# Routines
+# =============================================================================
+def pingpong_initiator(
+    qubit: Qubit, context: ProgramContext, peer_name: str, num_rounds: int = 3
+):
+    """
+    Executes the ping‐pong teleportation protocol for the initiator.
+
+    In even rounds, the provided qubit is sent to the peer.
+    In odd rounds, the initiator receives the qubit.
+
+    :param qubit: The qubit to be teleported.
+    :param context: Context -> connection, csockets, and epr_sockets.
+    :param peer_name: Name of the peer.
+    :param num_rounds: Number of ping‐pong rounds.
+    """
+    if num_rounds % 2 == 0:
+        raise ValueError("It must be odd for a complete ping-pong exchange.")
+
+    for round_num in range(num_rounds):
+        if round_num % 2 == 0:
+            # Even round: send the qubit.
+            yield from teleport_send(qubit, context, peer_name)
+        else:
+            # Odd round: receive a new qubit from the peer.
+            qubit = yield from teleport_recv(context, peer_name)
+
+    yield from context.connection.flush()
+
+
+def pingpong_responder(
+    context: ProgramContext, peer_name: str, num_rounds: int = 3
+) -> Generator[None, None, Qubit]:
+    """
+    Executes the complementary ping‐pong teleportation protocol
+    for the responder.
+
+    The responder starts without a qubit and in the first (even) round
+    receives one. In odd rounds he sends the qubit. After completing
+    the rounds, Bob returns the final qubit he holds.
+
+    :param context: Context -> connection, csockets, and epr_sockets.
+    :param peer_name: Name of the peer.
+    :param num_rounds: Number of ping‐pong rounds.
+    :return: The final teleported qubit.
+    """
+    if num_rounds % 2 == 0:
+        raise ValueError("It must be odd for a complete ping-pong exchange.")
+
+    qubit = None
+
+    for round_num in range(num_rounds):
+        if round_num % 2 == 0:
+            # Even round: receive a qubit from the peer.
+            qubit = yield from teleport_recv(context, peer_name)
+        else:
+            # Odd round: send the qubit to the peer.
+            yield from teleport_send(qubit, context, peer_name)
+
+    yield from context.connection.flush()
+
+    return qubit

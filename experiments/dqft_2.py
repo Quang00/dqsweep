@@ -143,6 +143,7 @@ class BobDQFT2(Program):
             if a1_measurement == "1":
                 bob_qubit.Z()
             bob_qubit.H()
+
             yield from connection.flush()
 
             dm_b = get_qubit_state(bob_qubit, "Bob", full_state=True)
@@ -150,10 +151,9 @@ class BobDQFT2(Program):
             dm_ref = np.outer(state_ref, np.conjugate(state_ref))
             fidelity = dm_fidelity(dm_b, dm_ref, dm_check=False)
             self.fidelities.append(fidelity)
-
-            bob_qubit.free()
             self.simulation_times.append(sim_time(MILLISECOND))
 
+            bob_qubit.free()
             yield from connection.flush()
 
         return self.fidelities, self.simulation_times
