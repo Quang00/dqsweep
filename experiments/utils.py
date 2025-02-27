@@ -21,7 +21,7 @@ LOG_SCALE_PARAMS = {
 # =============================================================================
 # Helper Functions
 # =============================================================================
-def truncate_param(name: str, char: str = '_', n: int = 4) -> str:
+def truncate_param(name: str, char: str = "_", n: int = 4) -> str:
     """Truncates a parameter name to improve readability in plots.
 
     Args:
@@ -194,11 +194,13 @@ def plot_combined_3d_surfaces(
             fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
             ax.set_xlabel(truncate_param(q), fontsize=14)
             ax.set_ylabel(truncate_param(p), fontsize=14)
-            title_suffix = f" with {epr_rounds} hops" if experiment == "pingpong" else ""
+            title_suffix = (
+                f" with {epr_rounds} hops" if experiment == "pingpong" else ""
+            )
             ax.set_title(
-                    f"{experiment.capitalize()}: {truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
-                    fontsize=16,
-                    fontweight="bold",
+                f"{experiment.capitalize()}: {truncate_param(p)} vs {truncate_param(q)}{title_suffix}",
+                fontsize=16,
+                fontweight="bold",
             )
 
     plt.tight_layout()
@@ -236,12 +238,18 @@ def plot_combined_heatmaps(
     pairs = list(itertools.combinations(sweep_params, 2))
     metrics = [
         {"name": "Average Fidelity (%)", "cmap": "magma", "file_label": "fidelity"},
-        {"name": "Average Simulation Time (ms)", "cmap": "viridis", "file_label": "sim_times"},
+        {
+            "name": "Average Simulation Time (ms)",
+            "cmap": "viridis",
+            "file_label": "sim_times",
+        },
     ]
 
     # Plot an individual heatmap on a given axes.
     def plot_heatmap(ax, p, q, metric):
-        pivot = df.pivot_table(index=p, columns=q, values=metric["name"], aggfunc="mean")
+        pivot = df.pivot_table(
+            index=p, columns=q, values=metric["name"], aggfunc="mean"
+        )
         metric_matrix = pivot.values
         im = ax.imshow(
             metric_matrix,
@@ -276,13 +284,17 @@ def plot_combined_heatmaps(
                 plot_heatmap(ax, p, q, metric)
             plt.tight_layout()
             suffix = f"{(epr_rounds + 1) // 2}" if experiment == "pingpong" else ""
-            filename = os.path.join(output_dir, f"{experiment}_heatmap_{metric['file_label']}_{suffix}.png")
+            filename = os.path.join(
+                output_dir, f"{experiment}_heatmap_{metric['file_label']}_{suffix}.png"
+            )
             plt.savefig(filename, dpi=300)
             plt.close(fig)
             print(f"Saved {metric['name']} heatmap to {filename}")
     else:
         # Create a single combined figure with one row per metric.
-        fig, axes = plt.subplots(len(metrics), len(pairs), figsize=(12 * len(pairs), 8 * len(metrics)))
+        fig, axes = plt.subplots(
+            len(metrics), len(pairs), figsize=(12 * len(pairs), 8 * len(metrics))
+        )
         # Ensure axes is 2D even when there's only one pair.
         if len(pairs) == 1:
             axes = np.array([axes]).reshape(len(metrics), 1)

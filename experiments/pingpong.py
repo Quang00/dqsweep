@@ -16,7 +16,6 @@ Experiment details:
 """
 
 import numpy as np
-
 from netqasm.sdk import Qubit
 from netqasm.sdk.toolbox.state_prep import set_qubit_state
 from netsquid.qubits.dmutil import dm_fidelity
@@ -27,12 +26,11 @@ from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state, get_reference_state
 from squidasm.util.routines import teleport_recv, teleport_send
 
-
 # =============================================================================
 # Constants: Fixed Qubit State Parameters
 # =============================================================================
 PHI = 0.0
-THETA = np.pi/2
+THETA = np.pi / 2
 
 
 # =============================================================================
@@ -42,7 +40,7 @@ class AlicePingpongTeleportation(Program):
     """Implements Alice's side of the ping-pong teleportation experiment.
 
     Alice alternates between sending and receiving qubits across multiple
-    rounds. Even rounds involve sending a qubit, while odd rounds involve 
+    rounds. Even rounds involve sending a qubit, while odd rounds involve
     receiving a qubit prepared using the extracted state.
 
     Args:
@@ -90,7 +88,7 @@ class AlicePingpongTeleportation(Program):
         qubit = Qubit(context.connection)
         set_qubit_state(qubit, self.initial_phi, self.initial_theta)
         self.logger.info("Alice created the initial qubit")
-        
+
         for epr_round in range(self._num_epr_rounds):
             if epr_round % 2 == 0:
                 self.logger.info(f"Alice Round {epr_round}: Sending qubit")

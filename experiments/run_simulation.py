@@ -31,14 +31,10 @@ import os
 
 import numpy as np
 import pandas as pd
-
-from squidasm.run.stack.config import StackNetworkConfig
-from squidasm.run.stack.run import run
-
+from dqft_2 import AliceDQFT2, BobDQFT2
 from nonlocal_cnot import AliceProgram, BobProgram
 from pingpong import AlicePingpongTeleportation, BobPingpongTeleportation
 from teleportation import AliceTeleportation, BobTeleportation
-from dqft_2 import AliceDQFT2, BobDQFT2
 from utils import (
     create_subdir,
     parse_range,
@@ -46,6 +42,9 @@ from utils import (
     plot_combined_heatmaps,
     plot_parameter_metric_correlation,
 )
+
+from squidasm.run.stack.config import StackNetworkConfig
+from squidasm.run.stack.run import run
 
 
 # =============================================================================
@@ -179,7 +178,9 @@ def main():
         print("ArgumentError: You need to specify an odd number of epr rounds.")
         return
 
-    unique_output_dir = create_subdir(args.output_dir, args.experiment, args.sweep_params)
+    unique_output_dir = create_subdir(
+        args.output_dir, args.experiment, args.sweep_params
+    )
     print(f"Using output directory: {unique_output_dir}")
 
     cfg = StackNetworkConfig.from_file(args.config)
@@ -222,10 +223,21 @@ def main():
 
         # Generate visualizations
         plot_combined_3d_surfaces(
-            df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds
+            df,
+            sweep_params,
+            param_range_dict,
+            unique_output_dir,
+            args.experiment,
+            args.epr_rounds,
         )
         plot_combined_heatmaps(
-            df, sweep_params, param_range_dict, unique_output_dir, args.experiment, args.epr_rounds, separate_files=True
+            df,
+            sweep_params,
+            param_range_dict,
+            unique_output_dir,
+            args.experiment,
+            args.epr_rounds,
+            separate_files=True,
         )
     else:
         print("No sweep parameters provided. Running single configuration simulation.")
