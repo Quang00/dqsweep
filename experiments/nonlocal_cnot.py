@@ -105,8 +105,8 @@ class AliceProgram(Program):
             if b1_measurement == "1":
                 alice_qubit.Z()
 
-            # Free qubit and flush the connection
-            alice_qubit.free()
+            # Measure qubit and flush the connection
+            alice_qubit.measure()
             yield from connection.flush()
 
         return {}
@@ -199,11 +199,12 @@ class BobProgram(Program):
             state_ref = np.array([0, 0, 0, 1], dtype=complex)
             dm_ref = np.outer(state_ref, np.conjugate(state_ref))
             fidelity = dm_fidelity(dm_b, dm_ref)
-            fidelities.append(fidelity)
 
-            # Free qubit and record simulation time
-            bob_qubit.free()
-            yield from connection.flush()
+            bob_qubit.measure()
+
+            fidelities.append(fidelity)
             simulation_times.append(sim_time(MILLISECOND))
+
+            yield from connection.flush()
 
         return fidelities, simulation_times

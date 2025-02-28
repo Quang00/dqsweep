@@ -201,11 +201,12 @@ class BobTeleportation(Program):
             state_ref = np.array([0, 1], dtype=complex)
             dm_ref = np.outer(state_ref, np.conjugate(state_ref))
             fidelity = dm_fidelity(dm_b, dm_ref)
-            self.fidelities.append(fidelity)
 
-            # Free the qubit and record the simulation time
-            bob_qubit.free()
-            yield from connection.flush()
+            bob_qubit.measure()
+
+            self.fidelities.append(fidelity)
             self.simulation_times.append(sim_time(MILLISECOND))
+
+            yield from connection.flush()
 
         return self.fidelities, self.simulation_times

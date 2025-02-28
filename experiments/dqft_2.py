@@ -79,7 +79,7 @@ class AliceDQFT2(Program):
             yield from connection.flush()
             csocket.send(str(a1_measurement))
 
-            alice_qubit.free()
+            alice_qubit.measure()
             yield from connection.flush()
 
         return {}
@@ -150,10 +150,12 @@ class BobDQFT2(Program):
             state_ref = np.array([1, 1, 1, 1], dtype=complex) * 0.5
             dm_ref = np.outer(state_ref, np.conjugate(state_ref))
             fidelity = dm_fidelity(dm_b, dm_ref, dm_check=False)
+
+            bob_qubit.measure()
+
             self.fidelities.append(fidelity)
             self.simulation_times.append(sim_time(MILLISECOND))
 
-            bob_qubit.free()
             yield from connection.flush()
 
         return self.fidelities, self.simulation_times

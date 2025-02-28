@@ -160,9 +160,11 @@ class BobPingpongTeleportation(Program):
         dm_received = get_qubit_state(qubit, "Bob")
         dm_expected = get_reference_state(PHI, THETA)
         fid = dm_fidelity(dm_received, dm_expected, dm_check=False)
+
+        qubit.measure()
+
         fidelities.append(fid)
         simulation_times.append(sim_time(MILLISECOND))
-        qubit.free()
 
         yield from context.connection.flush()
 
