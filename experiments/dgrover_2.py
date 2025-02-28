@@ -2,7 +2,7 @@
 Distributed Grover Quantum Experiment
 --------------------------------
 This file implements the distributed Grover on 2 qubits,
-between two nodes (Alice and Bob).
+between two nodes (Alice and Bob) with an initial ping-pong teleportation.
 """
 
 import numpy as np
@@ -15,7 +15,7 @@ from squidasm.util.routines import (
     distributed_CPhase_target
 )
 
-from utils import compute_fidelity
+from utils import compute_fidelity, pingpong_initiator, pingpong_responder
 
 
 # =============================================================================
@@ -52,13 +52,15 @@ class AliceDGrover2(Program):
     def run(self, context: ProgramContext):
         """
         Executes Alice's part of distributed Grover on 2 qubits.
-
         """
 
         for _ in range(self._num_epr_rounds):
             # --- Initialization ---
             a_q = Qubit(context.connection)
             a_q.H()
+            b_q = Qubit(context.connection)
+            b_q.H()
+            yield from pingpong_initiator(b_q, context, self.PEER_NAME)
 
             # --- Oracle ---
             yield from distributed_CPhase_control(context, self.PEER_NAME, a_q)
@@ -123,8 +125,7 @@ class BobDGrover2(Program):
 
         for _ in range(self._num_epr_rounds):
             # --- Initialization ---
-            b_q = Qubit(context.connection)
-            b_q.H()
+            b_q = yield from pingpong_responder(context, self.PEER_NAME)
 
             # --- Oracle ---
             yield from distributed_CPhase_target(context, self.PEER_NAME, b_q)

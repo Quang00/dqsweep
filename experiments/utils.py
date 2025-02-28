@@ -361,10 +361,11 @@ def pingpong_initiator(
     The formal return is a generator and requires use of `yield from`
     in usage in order to function as intended.
 
-    :param qubit: The qubit to be teleported.
-    :param context: Context -> connection, csockets, and epr_sockets.
-    :param peer_name: Name of the peer.
-    :param num_rounds: Number of ping‐pong rounds.
+    Args:
+        :param qubit: The qubit to be teleported.
+        :param context: Context -> connection, csockets, and epr_sockets.
+        :param peer_name: Name of the peer.
+        :param num_rounds: Number of ping‐pong rounds.
     """
     if num_rounds % 2 == 0:
         raise ValueError("It must be odd for a complete ping-pong exchange.")
@@ -393,10 +394,11 @@ def pingpong_responder(
     The formal return is a generator and requires use of `yield from`
     in usage in order to function as intended.
 
-    :param context: Context -> connection, csockets, and epr_sockets.
-    :param peer_name: Name of the peer.
-    :param num_rounds: Number of ping‐pong rounds.
-    :return: The final teleported qubit.
+    Args:
+        :param context: Context -> connection, csockets, and epr_sockets.
+        :param peer_name: Name of the peer.
+        :param num_rounds: Number of ping‐pong rounds.
+        :return: The final teleported qubit.
     """
     if num_rounds % 2 == 0:
         raise ValueError("It must be odd for a complete ping-pong exchange.")
