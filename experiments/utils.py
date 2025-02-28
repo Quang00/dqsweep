@@ -6,9 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from netqasm.sdk import Qubit
+from netsquid.qubits.dmutil import dm_fidelity
 
 from squidasm.sim.stack.program import ProgramContext
 from squidasm.util.routines import teleport_recv, teleport_send
+from squidasm.util import get_qubit_state
 
 # =============================================================================
 # Constants
@@ -96,6 +98,29 @@ def parse_range(range_str: str, param_name: str) -> np.ndarray:
         return np.linspace(start, end, int(points))
     except ValueError:
         raise ValueError("Invalid format. Use 'start,end,points'.") from None
+
+
+def compute_fidelity(qubit: Qubit, owner: str, dm_state: np.ndarray) -> float:
+    """
+    Computes the fidelity between the density matrix of a given qubit and
+    the density matrix constructed from a reference state vector.
+
+    Args:
+        qubit: Qubit
+            The qubit whose state is to be evaluated.
+        owner: str
+            The owner of the qubit.
+        dm_state: np.ndarray
+            The reference state vector from which to build the density matrix.
+
+    Returns:
+        float: The fidelity between the two density matrices.
+    """
+    dm = get_qubit_state(qubit, owner, full_state=True)
+    dm_ref = np.outer(dm_state, np.conjugate(dm_state))
+    fidelity = dm_fidelity(dm, dm_ref, dm_check=False)
+
+    return fidelity
 
 
 # =============================================================================

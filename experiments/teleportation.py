@@ -23,12 +23,12 @@ from netqasm.sdk.connection import BaseNetQASMConnection
 from netqasm.sdk.epr_socket import EPRSocket
 from netqasm.sdk.qubit import Qubit
 
-from netsquid.qubits.dmutil import dm_fidelity
 from netsquid.util.simtools import MILLISECOND, sim_time
 
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
-from squidasm.util import get_qubit_state
 from squidasm.util.routines import teleport_recv, teleport_send
+
+from utils import compute_fidelity
 
 
 # =============================================================================
@@ -197,10 +197,8 @@ class BobTeleportation(Program):
             yield from connection.flush()
 
             # Compute the fidelity of the final state
-            dm_b = get_qubit_state(bob_qubit, "Bob", full_state=True)
             state_ref = np.array([0, 1], dtype=complex)
-            dm_ref = np.outer(state_ref, np.conjugate(state_ref))
-            fidelity = dm_fidelity(dm_b, dm_ref)
+            fidelity = compute_fidelity(bob_qubit, "Bob", state_ref)
 
             bob_qubit.measure()
 

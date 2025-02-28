@@ -7,15 +7,15 @@ between two nodes (Alice and Bob).
 
 import numpy as np
 from netqasm.sdk.qubit import Qubit
-from netsquid.qubits.dmutil import dm_fidelity
 from netsquid.util.simtools import MILLISECOND, sim_time
 
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
-from squidasm.util import get_qubit_state
 from squidasm.util.routines import (
     distributed_CPhase_control,
     distributed_CPhase_target
 )
+
+from utils import compute_fidelity
 
 
 # =============================================================================
@@ -140,10 +140,8 @@ class BobDGrover2(Program):
             # --- Round completed ---
             msg = yield from context.csockets[self.PEER_NAME].recv()
             if msg == "ACK":
-                dm_b = get_qubit_state(b_q, "Bob", full_state=True)
                 state_ref = np.array([0, 0, 0, 1], dtype=complex)
-                dm_ref = np.outer(state_ref, np.conjugate(state_ref))
-                fidelity = dm_fidelity(dm_b, dm_ref, dm_check=False)
+                fidelity = compute_fidelity(b_q, "Bob", state_ref)
 
                 b_q.measure()
 
