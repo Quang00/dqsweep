@@ -39,9 +39,8 @@ from dgrover_2 import AliceDGrover2, BobDGrover2
 from utils import (
     create_subdir,
     parse_range,
-    plot_combined_3d_surfaces,
     plot_combined_heatmaps,
-    plot_parameter_metric_correlation,
+    metric_correlation,
 )
 
 from squidasm.run.stack.config import StackNetworkConfig
@@ -209,8 +208,8 @@ def main():
         print("Sweep completed. Preview of results:")
         print(df.head())
 
-        # Generate correlation heatmap
-        plot_parameter_metric_correlation(
+        # Generate a txt file with the correlation values
+        metric_correlation(
             df,
             sweep_params,
             ["Average Fidelity (%)", "Average Simulation Time (ms)"],
@@ -224,15 +223,6 @@ def main():
             for param, rng_str in zip(sweep_params, args.ranges)
         }
 
-        # Generate visualizations
-        plot_combined_3d_surfaces(
-            df,
-            sweep_params,
-            param_range_dict,
-            unique_output_dir,
-            args.experiment,
-            args.epr_rounds,
-        )
         plot_combined_heatmaps(
             df,
             sweep_params,

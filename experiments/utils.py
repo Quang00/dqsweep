@@ -9,8 +9,8 @@ from netqasm.sdk import Qubit
 from netsquid.qubits.dmutil import dm_fidelity
 
 from squidasm.sim.stack.program import ProgramContext
-from squidasm.util.routines import teleport_recv, teleport_send
 from squidasm.util import get_qubit_state
+from squidasm.util.routines import teleport_recv, teleport_send
 
 # =============================================================================
 # Constants
@@ -123,17 +123,14 @@ def compute_fidelity(qubit: Qubit, owner: str, dm_state: np.ndarray) -> float:
     return fidelity
 
 
-# =============================================================================
-# Plotting Functions
-# =============================================================================
-def plot_parameter_metric_correlation(
+def metric_correlation(
     df: pd.DataFrame,
     sweep_params: list,
     metric_cols: list,
     output_dir: str,
     experiment: str,
 ):
-    """Computes and plots a bar chart for parameter-performance correlation.
+    """Computes and generate a txt file for parameter-performance correlation.
 
     Args:
         df (pd.DataFrame): Dataframe containing parameter values and metrics.
@@ -142,106 +139,21 @@ def plot_parameter_metric_correlation(
         output_dir (str): Directory to save the plot.
         experiment (str): Experiment name.
     """
-    corr_data = df[sweep_params + metric_cols].corr()
-    corr_subset = corr_data.loc[sweep_params, metric_cols]
+    # Calculate the correlation for the selected columns
+    corr = df[sweep_params + metric_cols].corr().loc[sweep_params, metric_cols]
+    filename = os.path.join(output_dir, f"{experiment}_corr.txt")
 
-    x = np.arange(len(sweep_params))
-    width = 0.35
-
-    _, ax = plt.subplots(figsize=(12, len(sweep_params) * 0.8 + 4))
-    for i, metric in enumerate(metric_cols):
-        ax.barh(x + (i * width), corr_subset[metric], width, label=metric)
-
-    ax.set_yticks(x + width / 2)
-    sweep_params = [truncate_param(param) for param in sweep_params]
-    ax.set_yticklabels(sweep_params, fontsize=14)
-    ax.set_xlabel("Correlation Coefficient", fontsize=14)
-    ax.set_title(
-        f"{experiment.capitalize()}: Parameter-Performance Correlation",
-        fontsize=16,
-        fontweight="bold",
-    )
-    ax.legend(title="Performance Metrics", fontsize=12)
-    plt.grid(axis="x", linestyle="--", alpha=0.7)
-    plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_param_correlation.png")
-    plt.savefig(filename, dpi=1000)
-    plt.close()
-    print(f"Saved correlation bar chart to {filename}")
+    with open(filename, "w") as f:
+        f.write("Parameter\t" + "\t".join(metric_cols) + "\n")
+        for param in sweep_params:
+            row = [f"{corr.loc[param, metric]:.2f}" for metric in metric_cols]
+            f.write(f"{param}\t" + "\t".join(row) + "\n")
+    print(f"Saved correlation values to {filename}")
 
 
-def plot_combined_3d_surfaces(
-    df: pd.DataFrame,
-    sweep_params: list,
-    param_range_dict: dict,
-    output_dir: str,
-    experiment: str,
-    epr_rounds: int,
-):
-    """Generates a single figure containing all 3D surface plots.
-
-    Args:
-        df (pd.DataFrame): Dataframe containing experiment results.
-        sweep_params (list): List of swept parameters.
-        param_range_dict (dict): Dictionary mapping parameters to their ranges.
-        output_dir (str): Directory to save the generated figure.
-        experiment (str): Name of the experiment.
-        epr_rounds (int): Number of epr rounds.
-    """
-    pairs = list(itertools.combinations(sweep_params, 2))
-    figsize = (12 * len(pairs), 16)
-    fig, axes = plt.subplots(
-        2, len(pairs), figsize=figsize, subplot_kw={"projection": "3d"}
-    )
-    fig.subplots_adjust(wspace=1, hspace=1)
-
-    if len(pairs) == 1:
-        axes = np.array([[axes[0]], [axes[1]]])
-
-    for row, metric_name, cmap_style in zip(
-        range(2),
-        ["Average Fidelity (%)", "Average Simulation Time (ms)"],
-        ["magma", "viridis"],
-    ):
-        for col, (p, q) in enumerate(pairs):
-            ax = axes[row, col]
-
-            # Generate pivot table for metric
-            pivot = df.pivot_table(
-                index=p, columns=q, values=metric_name, aggfunc="mean"
-            )
-            matrix = pivot.values
-
-            # Ensure correct meshgrid
-            x = param_range_dict[p]
-            y = param_range_dict[q]
-            x_mesh, y_mesh = np.meshgrid(x, y, indexing="ij")
-
-            # Transpose metric_matrix to align with meshgrid
-            surf = ax.plot_surface(
-                x_mesh, y_mesh, matrix.T, cmap=cmap_style, edgecolor="none"
-            )
-            fig.colorbar(surf, ax=ax, shrink=0.5, aspect=20)
-            var1 = truncate_param(q)
-            var2 = truncate_param(p)
-            ax.set_xlabel(var1, fontsize=14)
-            ax.set_ylabel(var2, fontsize=14)
-            title_suffix = (
-                f" with {epr_rounds} hops" if experiment == "pingpong" else ""
-            )
-            ax.set_title(
-                f"{experiment.capitalize()}: {var2} vs {var1}{title_suffix}",
-                fontsize=16,
-                fontweight="bold",
-            )
-
-    plt.tight_layout()
-    filename = os.path.join(output_dir, f"{experiment}_3d_surfaces.png")
-    plt.savefig(filename, dpi=300)
-    plt.close()
-    print(f"Saved all 3D surface plots to {filename}")
-
-
+# =============================================================================
+# Plotting Functions
+# =============================================================================
 def plot_combined_heatmaps(
     df: pd.DataFrame,
     sweep_params: list,
@@ -331,9 +243,7 @@ def plot_combined_heatmaps(
     else:
         # Create a single combined figure with one row per metric.
         figsize = (12 * len(pairs), 8 * len(metrics))
-        fig, axes = plt.subplots(
-            len(metrics), len(pairs), figsize=figsize
-        )
+        fig, axes = plt.subplots(len(metrics), len(pairs), figsize=figsize)
         # Ensure axes is 2D even when there's only one pair.
         if len(pairs) == 1:
             axes = np.array([axes]).reshape(len(metrics), 1)
