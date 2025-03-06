@@ -146,7 +146,7 @@ def metric_correlation(
     with open(filename, "w") as f:
         f.write("Parameter\t" + "\t".join(metric_cols) + "\n")
         for param in sweep_params:
-            row = [f"{corr.loc[param, metric]:.2f}" for metric in metric_cols]
+            row = [f"{corr.loc[param, metric]:.3f}" for metric in metric_cols]
             f.write(f"{param}\t" + "\t".join(row) + "\n")
     print(f"Saved correlation values to {filename}")
 
@@ -308,7 +308,9 @@ def pingpong_responder(
         :param context: Context -> connection, csockets, and epr_sockets.
         :param peer_name: Name of the peer.
         :param num_rounds: Number of ping‐pong rounds.
-        :return: The final teleported qubit.
+
+    Returns:
+        Generator[None, None, Qubit]: The final teleported qubit.
     """
     if num_rounds % 2 == 0:
         raise ValueError("It must be odd for a complete ping-pong exchange.")
