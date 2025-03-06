@@ -31,7 +31,6 @@ jobs:
       uses: actions/checkout@master
       with:
           repository: QuTech-Delft/squidasm
-          token: ${{ secrets.AUTH_TOKEN }}
     - name: Install squidasm
       run: |
             make install-dev
@@ -48,4 +47,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest tests
+        pytest tests --ignore=squidasm
