@@ -17,6 +17,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      NETSQUIDPYPI_USER: ${{ secrets.NETSQUIDPYPI_USER }}
+      NETSQUIDPYPI_PWD: ${{ secrets.NETSQUIDPYPI_PWD }}
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python 3.10
@@ -28,6 +32,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Clone and install squidasm
+      run: |
+          git clone git@github.com:QuTech-Delft/squidasm.git
+          cd squidasm
+          make install
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names

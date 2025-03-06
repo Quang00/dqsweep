@@ -63,7 +63,6 @@ qlink-interface==1.0.0
 rustworkx==0.16.0
 scipy==1.9.3
 six==1.17.0
--e git+ssh://git@github.com/QuTech-Delft/squidasm.git@7e2b6ba3d5297d956175f059f4a14092f26027be#egg=squidasm
 stack-data==0.6.3
 stevedore==5.4.0
 symengine==0.13.0

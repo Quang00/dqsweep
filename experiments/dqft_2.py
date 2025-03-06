@@ -79,7 +79,7 @@ class AliceDQFT2(Program):
             yield from connection.flush()
             csocket.send(str(a1_measurement))
 
-            alice_qubit.measure()
+            alice_qubit.free()
             yield from connection.flush()
 
         return {}
