@@ -30,8 +30,10 @@ jobs:
     - name: Clone QuTech-Delft/squidasm PUBLIC repository
       uses: GuillaumeFalourd/clone-github-repo-action@main
       with:
-          owner: QuTech-Delft
-          repository: squidasm
+          depth: 1
+          branch: 'main'
+          owner: 'QuTech-Delft'
+          repository: 'squidasm'
     - name: Install squidasm
       run: |
             cd squidasm
