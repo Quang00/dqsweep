@@ -1,5 +1,7 @@
 # Analysis of fidelity/latency of multiple quantum network experiments
 
+![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg)
+
 This project is a tool to analyze the effects of multiple parameters of a quantum network using netsquid and squidasm for some experiments (Distributed CNOT, Teleportation CNOT, Ping pong teleportation).
 
 ## Installation
