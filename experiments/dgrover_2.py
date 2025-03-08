@@ -1,6 +1,6 @@
 """
 Distributed Grover Quantum Experiment
---------------------------------
+-------------------------------------
 This file implements the distributed Grover on 2 qubits,
 between two nodes (Alice and Bob) with an initial ping-pong teleportation.
 """
@@ -15,7 +15,11 @@ from squidasm.util.routines import (
     distributed_CPhase_target
 )
 
-from utils import compute_fidelity, pingpong_initiator, pingpong_responder
+from experiments.utils import (
+    compute_fidelity,
+    pingpong_initiator,
+    pingpong_responder
+)
 
 
 # =============================================================================

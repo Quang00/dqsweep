@@ -1,6 +1,6 @@
 """
-Ping-Pong Teleportation Experiment
------------------------------------
+Pingpong Teleportation
+----------------------
 
 This module implements a quantum teleportation ping-pong experiment
 between two nodes (Alice and Bob). The experiment involves alternating
@@ -23,7 +23,8 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state, get_reference_state
-from squidasm.util.routines import teleport_recv, teleport_send
+
+from experiments.utils import pingpong_initiator, pingpong_responder
 
 # =============================================================================
 # Constants: Fixed Qubit State Parameters
@@ -40,7 +41,7 @@ class AlicePingpongTeleportation(Program):
 
     Alice alternates between sending and receiving qubits across multiple
     rounds. Even rounds involve sending a qubit, while odd rounds involve
-    receiving a qubit prepared using the extracted state.
+    receiving a qubit.
 
     Args:
         num_epr_rounds (int): Number of EPR rounds for the experiment.
@@ -86,10 +87,7 @@ class AlicePingpongTeleportation(Program):
         set_qubit_state(qubit, self.initial_phi, self.initial_theta)
 
         for epr_round in range(self._num_epr_rounds):
-            if epr_round % 2 == 0:
-                yield from teleport_send(qubit, context, self.PEER_NAME)
-            else:
-                qubit = yield from teleport_recv(context, self.PEER_NAME)
+            yield from pingpong_initiator(qubit, context, self.PEER_NAME, epr_round)
 
         yield from context.connection.flush()
 
@@ -103,9 +101,8 @@ class BobPingpongTeleportation(Program):
     """Implements Bob's side of the ping-pong teleportation experiment.
 
     Bob alternates between receiving and sending qubits across multiple
-    rounds. Even rounds involve receiving a qubit and extracting its state,
-    while odd rounds involve sending a qubit prepared using the extracted
-    state.
+    rounds. Even rounds involve receiving a qubit, while odd rounds involve
+    sending the qubit.
 
     Args:
         num_epr_rounds (int): Number of EPR rounds for the experiment.
@@ -152,10 +149,7 @@ class BobPingpongTeleportation(Program):
         simulation_times = []
 
         for epr_round in range(self._num_epr_rounds):
-            if epr_round % 2 == 0:
-                qubit = yield from teleport_recv(context, self.PEER_NAME)
-            else:
-                yield from teleport_send(qubit, context, self.PEER_NAME)
+            qubit = yield from pingpong_responder(context, self.PEER_NAME, epr_round)
 
         dm_received = get_qubit_state(qubit, "Bob")
         dm_expected = get_reference_state(PHI, THETA)

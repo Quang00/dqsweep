@@ -1,19 +1,11 @@
 """
-Quantum Teleportation Experiment
---------------------------------
+Nonlocal CNOT Gate With Two Teleportations
+------------------------------------------
 
 This module implements a quantum teleportation experiment using a nonlocal
 CNOT gate between two parties: Alice and Bob. Alice prepares and sends
 entangled qubits while Bob receives them, applies corrections, and measures
 the final state to assess fidelity.
-
-The experiment consists of:
-  - Alice generating EPR pairs, applying a CNOT gate, and measuring qubits.
-  - Bob receiving the EPR pairs, applying corrections based on Alice’s
-    measurements, and computing fidelity.
-  - Classical communication between Alice and Bob to ensure proper corrections.
-
-The results include fidelity computation and simulation time tracking.
 """
 
 import numpy as np
@@ -28,7 +20,7 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util.routines import teleport_recv, teleport_send
 
-from utils import compute_fidelity
+from experiments.utils import compute_fidelity
 
 
 # =============================================================================

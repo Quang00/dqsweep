@@ -1,22 +1,17 @@
 """
-Run Simulation, Parameter Sweep, and Plot Results
-----------------------------------------------------
+Run Simulation
+--------------
 
 This script runs a specified quantum network experiment while sweeping one or
-more configuration parameters. For each parameter combination the simulation
+more parameters from a given configuration. For each parameter combination the simulation
 is executed (averaging over a number of experiments) and the average fidelity
 and simulation time are computed. The results are collected into a pandas
 DataFrame, saved as a CSV file, and then the following plots are generated:
   - 2D heatmaps for each performance metric for unique pair of swept parameters
-    The colormap is chosen based on the metric:
-      • If the metric contains "Fidelity", 'magma' is used
-      • If the metric contains "Simulation", 'cividis' is used
-  - 3D surface plots for unique pair of swept parameters
-    The colormap is similarly chosen based on the metric
   - A parameter–performance correlation heatmap (showing the correlation
   between each input parameter and each performance metric).
 
-Parameters:
+Args:
   --config         Path to the configuration YAML file.
   --experiment     Experiment to simulate.
   --epr_rounds     Number of EPR rounds (default 10).
@@ -31,12 +26,18 @@ import os
 
 import numpy as np
 import pandas as pd
-from nonlocal_cnot import AliceProgram, BobProgram
-from pingpong import AlicePingpongTeleportation, BobPingpongTeleportation
-from teleportation import AliceTeleportation, BobTeleportation
-from dqft_2 import AliceDQFT2, BobDQFT2
-from dgrover_2 import AliceDGrover2, BobDGrover2
-from utils import (
+from experiments.nonlocal_cnot import AliceProgram, BobProgram
+from experiments.dqft_2 import AliceDQFT2, BobDQFT2
+from experiments.dgrover_2 import AliceDGrover2, BobDGrover2
+from experiments.pingpong import (
+    AlicePingpongTeleportation,
+    BobPingpongTeleportation
+)
+from experiments.nonlocal_cnot_2_teleportations import (
+    AliceTeleportation,
+    BobTeleportation
+)
+from experiments.utils import (
     create_subdir,
     parse_range,
     plot_combined_heatmaps,
@@ -59,7 +60,8 @@ def sweep_parameters(
     experiment: str,
     output_dir: str,
 ) -> pd.DataFrame:
-    """Performs a parameter sweep, runs simulations, and stores results.
+    """
+    Performs a parameter sweep, runs simulations, and stores results.
 
     Args:
         cfg (StackNetworkConfig): Network configuration.
@@ -149,7 +151,7 @@ def main():
         "--experiment",
         type=str,
         default="cnot",
-        help="Experiment to simulate (cnot, teleportation, pingpong).",
+        help="Distributed experiments (e.g., cnot, pingpong, dgrover2, ...).",
     )
     parser.add_argument(
         "--epr_rounds", type=int, default=10, help="Number of EPR rounds."

@@ -1,20 +1,16 @@
 """
-Nonlocal CNOT Quantum Experiment
---------------------------------
+Nonlocal CNOT Gate
+------------------
 
-This module implements a nonlocal CNOT experiment between two parties:
-Alice and Bob. The experiment utilizes quantum entanglement and classical
-communication to perform a distributed CNOT gate.
+This file implements a nonlocal CNOT gate between two parties:
+Alice and Bob using one ebit and one bit in each direction. The
+implementation is from the paper "Optimal local implementation
+of nonlocal quantum gates" (2000), Eisert, Jens et al.
 
-The process consists of:
-  - Alice generating EPR pairs, applying a CNOT gate, and measuring qubits.
-  - Bob receiving the EPR pairs, applying corrections based on Alice’s
-    measurements, and computing fidelity.
-  - Classical communication between Alice and Bob to share measurement
-    results and ensure proper corrections.
-
-The results include fidelity computation and simulation time tracking
-for performance evaluation.
+The initial control qubit state of Alice is |1>, the initial target
+qubit state of Bob is |0>. After the distributed CNOT gate, the qubit
+of Bob should be |1>. This is verified by computing the fidelity
+between the density output matrix and the expected one.
 """
 
 import numpy as np
@@ -28,54 +24,52 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 
-from utils import compute_fidelity
+from experiments.utils import compute_fidelity
 
 
 # =============================================================================
-# Alice's Program for Nonlocal CNOT
+# Alice's Program for Nonlocal CNOT Gate
 # =============================================================================
 class AliceProgram(Program):
-    """Implements Alice's side of the nonlocal CNOT experiment.
-
-    Alice generates EPR pairs, applies a CNOT gate, performs measurements,
-    and communicates results to Bob.
+    """
+    Implements Alice's side of the nonlocal CNOT gate.
 
     Args:
-        num_epr_rounds (int): Number of EPR rounds for the experiment.
+        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Alice's program with the specified number of rounds.
+        """
+        Initializes Alice's program with the given number of rounds.
 
         Args:
-            num_epr_rounds (int): Number of EPR rounds in the experiment.
+            num_epr_rounds (int): Number of EPR rounds.
         """
         self._num_epr_rounds = num_epr_rounds
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Alice's CNOT program.
+        """
+        Defines metadata for Alice's program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, csockets, qubit limit.
         """
         return ProgramMeta(
             name="nonlocal_CNOT",
             csockets=[self.PEER_NAME],
             epr_sockets=[self.PEER_NAME],
-            max_qubits=1,
+            max_qubits=2,
         )
 
     def run(self, context: ProgramContext):
-        """Executes Alice's nonlocal CNOT experiment.
-
-        In each round, Alice generates an EPR pair, applies a nonlocal CNOT,
-        measures qubits, and communicates results to Bob.
+        """
+        Executes Alice's part.
 
         Args:
-            context (ProgramContext): Provides network and connection details.
+            context (ProgramContext): Network and connection details.
 
         """
         csocket = context.csockets[self.PEER_NAME]
@@ -86,11 +80,9 @@ class AliceProgram(Program):
             # Create an EPR pair
             a1_qubit = epr_socket.create_keep()[0]
 
-            # Create a local qubit and apply an X gate
+            # Create a local qubit which is the control qubit of the CNOT gate
             alice_qubit = Qubit(connection)
             alice_qubit.X()
-
-            # Perform a nonlocal CNOT operation
             alice_qubit.cnot(a1_qubit)
 
             # Measure Alice's entangled qubit
@@ -113,55 +105,52 @@ class AliceProgram(Program):
 
 
 # =============================================================================
-# Bob's Program for Nonlocal CNOT
+# Bob's Program for Nonlocal CNOT Gate
 # =============================================================================
 class BobProgram(Program):
-    """Implements Bob's side of the nonlocal CNOT experiment.
-
-    Bob receives EPR pairs, listens to Alice's measurement results,
-    applies correction operations, and measures the final state to compute
-    fidelity.
+    """
+    Implements Bob's side of the nonlocal CNOT gate.
 
     Args:
-        num_epr_rounds (int): Number of EPR rounds for the experiment.
+        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Bob's program with the specified number of rounds.
+        """
+        Initializes Bob's program with the specified number of rounds.
 
         Args:
-            num_epr_rounds (int): Number of EPR rounds in the experiment.
+            num_epr_rounds (int): Number of EPR rounds.
         """
         self._num_epr_rounds = num_epr_rounds
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Bob's CNOT program.
+        """
+        Defines metadata for Bob's program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, csockets, qubit limit.
         """
         return ProgramMeta(
             name="nonlocal_CNOT",
             csockets=[self.PEER_NAME],
             epr_sockets=[self.PEER_NAME],
-            max_qubits=1,
+            max_qubits=2,
         )
 
     def run(self, context: ProgramContext):
-        """Executes Bob's nonlocal CNOT experiment.
-
-        In each round, Bob receives an EPR pair, wait for Alice's measurement
-        results, applies corrections, and measures the final state.
+        """
+        Executes Bob's part.
 
         Args:
-            context (ProgramContext): Provides network and connection details.
+            context (ProgramContext): Network and connection details.
 
         Returns:
-            tuple[list[float], list[float]]: A tuple containing lists of
-            fidelities and simulation times.
+            list[tuple[list[float], list[float]]]: A list of tuple containing
+            lists of fidelities and simulation times.
         """
         csocket: Socket = context.csockets[self.PEER_NAME]
         epr_socket: EPRSocket = context.epr_sockets[self.PEER_NAME]
@@ -171,17 +160,17 @@ class BobProgram(Program):
         simulation_times: list[float] = []
 
         for _ in range(self._num_epr_rounds):
-            # Receive an EPR pair
+            # Receive the EPR pair
             b1_qubit = epr_socket.recv_keep()[0]
             yield from connection.flush()
 
-            # Create a local qubit as the target of the CNOT operation
+            # Create a local qubit which is the target qubit of the CNOT gate
             bob_qubit = Qubit(connection)
 
             # Receive Alice's measurement result
             a1_measurement = yield from csocket.recv()
 
-            # Apply correction based on Alice's measurement
+            # Apply X gate based on Alice's measurement
             if a1_measurement == "1":
                 b1_qubit.X()
 
@@ -191,15 +180,16 @@ class BobProgram(Program):
             b1_measurement = b1_qubit.measure()
             yield from connection.flush()
 
-            # Send measurement result back to Alice
+            # Send measurement result to Alice
             csocket.send(str(b1_measurement))
 
-            # Compute fidelity of the final state
+            # Compare density matrices with the expected state
             state_ref = np.array([0, 0, 0, 1], dtype=complex)
             fidelity = compute_fidelity(bob_qubit, "Bob", state_ref)
 
             bob_qubit.measure()
 
+            # Store the fidelity and simulation time results
             fidelities.append(fidelity)
             simulation_times.append(sim_time(MILLISECOND))
 

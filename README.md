@@ -8,7 +8,7 @@ This project is a tool to analyze the effects of multiple parameters of a quantu
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python3 -m pip install --U pip
+python3 -m pip install -U pip
 export NETSQUIDPYPI_USER=user1234
 export NETSQUIDPYPI_PWD=password1234
 git clone git@github.com:QuTech-Delft/squidasm.git
@@ -20,7 +20,7 @@ make install
 ---
 
 ```bash
-python experiments/run_simulation.py \
+python -m experiments.run_simulation \
   --config configurations/perfect.yaml \
   --experiment cnot \
   --epr_rounds 10 \
@@ -30,7 +30,7 @@ python experiments/run_simulation.py \
 ```
 
 ```bash
-python experiments/run_simulation.py \
+python -m experiments.run_simulation \
   --config configurations/perfect.yaml \
   --experiment cnot \
   --epr_rounds 10 \
@@ -40,7 +40,7 @@ python experiments/run_simulation.py \
 ```
 
 ```bash
-python experiments/run_simulation.py \
+python -m experiments.run_simulation \
   --config configurations/depolarise_link.yaml \
   --experiment pingpong \
   --epr_rounds 3 \
@@ -50,7 +50,7 @@ python experiments/run_simulation.py \
 ```
 
 ```bash
-python experiments/run_simulation.py \
+python -m experiments.run_simulation \
   --config configurations/perfect.yaml \
   --experiment pingpong \
   --epr_rounds 10 \

@@ -14,7 +14,7 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 
-from utils import compute_fidelity
+from experiments.utils import compute_fidelity
 
 
 # =============================================================================

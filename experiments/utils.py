@@ -8,6 +8,8 @@ import pandas as pd
 from netqasm.sdk import Qubit
 from netsquid.qubits.dmutil import dm_fidelity
 
+from squidasm.run.stack.config import StackNetworkConfig
+from squidasm.run.stack.run import run
 from squidasm.sim.stack.program import ProgramContext
 from squidasm.util import get_qubit_state
 from squidasm.util.routines import teleport_recv, teleport_send
@@ -106,12 +108,9 @@ def compute_fidelity(qubit: Qubit, owner: str, dm_state: np.ndarray) -> float:
     the density matrix constructed from a reference state vector.
 
     Args:
-        qubit: Qubit
-            The qubit whose state is to be evaluated.
-        owner: str
-            The owner of the qubit.
-        dm_state: np.ndarray
-            The reference state vector from which to build the density matrix.
+        qubit (Qubit): The qubit whose state is to be evaluated.
+        owner (str): The owner of the qubit.
+        dm_state (np.ndarray): The reference state vector.
 
     Returns:
         float: The fidelity between the two density matrices.
@@ -148,22 +147,71 @@ def metric_correlation(
         for param in sweep_params:
             row = [f"{corr.loc[param, metric]:.3f}" for metric in metric_cols]
             f.write(f"{param}\t" + "\t".join(row) + "\n")
+
     print(f"Saved correlation values to {filename}")
 
 
 # =============================================================================
 # Plotting Functions
 # =============================================================================
+def plot_heatmap(ax, df, p, q, metric, params, exp, epr_rounds):
+    """
+    Plot an individual heatmap on a given axes.
+
+    Args:
+        ax: Matplotlib Axes object.
+        df (pd.DataFrame): Dataframe containing experiment results.
+        p (str): Name of the parameter for the y-axis.
+        q (str): Name of the parameter for the x-axis.
+        metric (dict): Dictionary with keys 'name', 'cmap', and 'file_label'.
+        params (dict): Dictionary mapping parameters to their ranges.
+        exp (str): Name of the experiment.
+        epr_rounds (int): Number of epr rounds.
+    """
+    pivot = df.pivot_table(index=p, columns=q, values=metric["name"])
+    metric_matrix = pivot.values
+
+    im = ax.imshow(
+        metric_matrix,
+        extent=[
+            params[q][0],
+            params[q][-1],  # X-axis
+            params[p][0],
+            params[p][-1],  # Y-axis
+        ],
+        origin="lower",
+        aspect="auto",
+        cmap=metric["cmap"],
+    )
+
+    cbar = ax.figure.colorbar(im, ax=ax)
+    cbar.set_label(metric["name"], fontsize=14)
+
+    var1 = truncate_param(q)
+    var2 = truncate_param(p)
+
+    ax.set_xlabel(var1, fontsize=14)
+    ax.set_ylabel(var2, fontsize=14)
+
+    title_suffix = f" with {epr_rounds} hops" if exp == "pingpong" else ""
+    ax.set_title(
+        f"{exp.capitalize()}: {var2} vs {var1}{title_suffix}",
+        fontsize=16,
+        fontweight="bold",
+    )
+
+
 def plot_combined_heatmaps(
     df: pd.DataFrame,
     sweep_params: list,
-    param_range_dict: dict,
+    params: dict,
     output_dir: str,
     exp: str,
     epr_rounds: int,
     separate_files: bool = False,
 ):
-    """Generates heatmaps from experiment results.
+    """
+    Generates heatmaps from experiment results.
 
     If `separate_files` is True, two separate figures will be created:
     one for Average Fidelity and one for Average Simulation Time.
@@ -172,56 +220,25 @@ def plot_combined_heatmaps(
     Args:
         df (pd.DataFrame): Dataframe containing experiment results.
         sweep_params (list): List of swept parameters.
-        param_range_dict (dict): Dictionary mapping parameters to their ranges.
+        params (dict): Dictionary mapping parameters to their ranges.
         output_dir (str): Directory to save the generated figures.
-        experiment (str): Name of the experiment.
+        exp (str): Name of the experiment.
         epr_rounds (int): Number of epr rounds.
         separate_files (bool, optional): If True, save in a separate file.
     """
-
     pairs = list(itertools.combinations(sweep_params, 2))
     metrics = [
         {
             "name": "Average Fidelity (%)",
             "cmap": "magma",
-            "file_label": "fidelity"},
+            "file_label": "fidelity",
+        },
         {
             "name": "Average Simulation Time (ms)",
             "cmap": "viridis",
             "file_label": "sim_times",
         },
     ]
-
-    # Plot an individual heatmap on a given axes.
-    def plot_heatmap(ax, p, q, metric):
-        pivot = df.pivot_table(
-            index=p, columns=q, values=metric["name"], aggfunc="mean"
-        )
-        metric_matrix = pivot.values
-        im = ax.imshow(
-            metric_matrix,
-            extent=[
-                param_range_dict[q][0],
-                param_range_dict[q][-1],  # X-axis
-                param_range_dict[p][0],
-                param_range_dict[p][-1],  # Y-axis
-            ],
-            origin="lower",
-            aspect="auto",
-            cmap=metric["cmap"],
-        )
-        cbar = ax.figure.colorbar(im, ax=ax)
-        cbar.set_label(metric["name"], fontsize=14)
-        var1 = truncate_param(q)
-        var2 = truncate_param(p)
-        ax.set_xlabel(var1, fontsize=14)
-        ax.set_ylabel(var2, fontsize=14)
-        title_suffix = f" with {epr_rounds} hops" if exp == "pingpong" else ""
-        ax.set_title(
-            f"{exp.capitalize()}: {var2} vs {var1}{title_suffix}",
-            fontsize=16,
-            fontweight="bold",
-        )
 
     if separate_files:
         # Generate and save one figure per metric.
@@ -231,7 +248,7 @@ def plot_combined_heatmaps(
             if len(pairs) == 1:
                 axes = [axes]
             for ax, (p, q) in zip(axes, pairs):
-                plot_heatmap(ax, p, q, metric)
+                plot_heatmap(ax, df, p, q, metric, params, exp, epr_rounds)
             plt.tight_layout()
             suffix = f"{(epr_rounds + 1) // 2}" if exp == "pingpong" else ""
             filename = os.path.join(
@@ -249,12 +266,51 @@ def plot_combined_heatmaps(
             axes = np.array([axes]).reshape(len(metrics), 1)
         for i, metric in enumerate(metrics):
             for j, (p, q) in enumerate(pairs):
-                plot_heatmap(axes[i, j], p, q, metric)
+                plot_heatmap(axes[i, j], df, p, q, metric, params, exp, epr_rounds)
         plt.tight_layout()
         filename = os.path.join(output_dir, f"{exp}_heatmaps.png")
         plt.savefig(filename, dpi=300)
         plt.close(fig)
         print(f"Saved combined heatmaps to {filename}")
+
+
+def run_simulation(
+    config: str,
+    epr_rounds: int = 10,
+    num_times: int = 10,
+    alice_cls=None,
+    bob_cls=None,
+):
+    """
+    Runs a simulation with the given configuration and program classes.
+
+    Args:
+        config (str): Path to the network configuration YAML file.
+        epr_rounds (int): Number of EPR rounds to execute in the simulation.
+        num_times (int): Number of simulation repetitions.
+        alice_cls (type): The class implementing Alice's program.
+        bob_cls (type): The class implementing Bob's program.
+
+    Returns:
+        dict: A dictionary containing simulation results for each node.
+    """
+    if alice_cls is None or bob_cls is None:
+        raise ValueError("Alice class and Bob class must be provided.")
+
+    # Load the network configuration.
+    cfg = StackNetworkConfig.from_file(config)
+
+    alice_program = alice_cls(num_epr_rounds=epr_rounds)
+    bob_program = bob_cls(num_epr_rounds=epr_rounds)
+
+    # Run the simulation with the provided configuration.
+    results = run(
+        config=cfg,
+        programs={"Alice": alice_program, "Bob": bob_program},
+        num_times=num_times,
+    )
+
+    return results
 
 
 # =============================================================================
@@ -272,10 +328,10 @@ def pingpong_initiator(
     in usage in order to function as intended.
 
     Args:
-        :param qubit: The qubit to be teleported.
-        :param context: Context -> connection, csockets, and epr_sockets.
-        :param peer_name: Name of the peer.
-        :param num_rounds: Number of ping‐pong rounds.
+        qubit (Qubit): The qubit to be teleported.
+        context (ProgramContext): Connection, csockets, and epr_sockets.
+        peer_name (str): Name of the peer.
+        num_rounds (int): Number of ping‐pong rounds.
     """
     if num_rounds % 2 == 0:
         raise ValueError("It must be odd for a complete ping-pong exchange.")
@@ -305,9 +361,9 @@ def pingpong_responder(
     in usage in order to function as intended.
 
     Args:
-        :param context: Context -> connection, csockets, and epr_sockets.
-        :param peer_name: Name of the peer.
-        :param num_rounds: Number of ping‐pong rounds.
+        context (ProgramContext): Connection, csockets, and epr_sockets.
+        peer_name (str): Name of the peer.
+        num_rounds (int): Number of ping‐pong rounds.
 
     Returns:
         Generator[None, None, Qubit]: The final teleported qubit.
