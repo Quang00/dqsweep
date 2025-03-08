@@ -34,8 +34,8 @@ from experiments.pingpong import (
     BobPingpongTeleportation
 )
 from experiments.nonlocal_cnot_2_teleportations import (
-    AliceTeleportation,
-    BobTeleportation
+    Alice2Teleportations,
+    Bob2Teleportations
 )
 from experiments.utils import (
     create_subdir,
@@ -89,7 +89,7 @@ def sweep_parameters(
     results = []
 
     alice_cls, bob_cls = {
-        "teleportation": (AliceTeleportation, BobTeleportation),
+        "2_teleportations": (Alice2Teleportations, Bob2Teleportations),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
         "dqft2": (AliceDQFT2, BobDQFT2),
         "dgrover2": (AliceDGrover2, BobDGrover2),
@@ -135,7 +135,8 @@ def sweep_parameters(
 
 
 def main():
-    """Parses command-line arguments, runs simulations, and generates plots.
+    """
+    Parses command-line arguments, runs simulations, and generates plots.
 
     This function reads configuration arguments, executes parameter sweeps
     if specified, and generates corresponding plots for visualization.

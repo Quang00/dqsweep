@@ -55,7 +55,7 @@ class AliceProgram(Program):
         Defines metadata for Alice's program.
 
         Returns:
-            ProgramMeta: Experiment name, csockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="nonlocal_CNOT",
@@ -119,7 +119,7 @@ class BobProgram(Program):
 
     def __init__(self, num_epr_rounds: int):
         """
-        Initializes Bob's program with the specified number of rounds.
+        Initializes Bob's program with the given number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds.
@@ -132,7 +132,7 @@ class BobProgram(Program):
         Defines metadata for Bob's program.
 
         Returns:
-            ProgramMeta: Experiment name, csockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="nonlocal_CNOT",

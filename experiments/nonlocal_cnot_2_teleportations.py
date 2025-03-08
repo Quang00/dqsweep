@@ -2,10 +2,19 @@
 Nonlocal CNOT Gate With Two Teleportations
 ------------------------------------------
 
-This module implements a quantum teleportation experiment using a nonlocal
-CNOT gate between two parties: Alice and Bob. Alice prepares and sends
-entangled qubits while Bob receives them, applies corrections, and measures
-the final state to assess fidelity.
+This file implements a nonlocal CNOT gate between two parties:
+Alice and Bob using two ebits and two bits in each direction. The
+implementation is a general implementation of any nonlocal two qubit
+gate, which uses two quantum teleportations. This approach consumes more
+resources that the one implemented in the file `nonlocal_cnot.py`.
+
+The initial control qubit state of Alice is |1>, the initial target
+qubit state of Bob is |0>. After the distributed CNOT gate, the qubit
+of Bob should be |1>. This is verified by computing the fidelity
+between the density output matrix and the expected one.
+
+Note: The first teleportation was implemented manually with the whole protocol
+while the second teleportation uses the provided routines by squidasm.
 """
 
 import numpy as np
@@ -24,51 +33,47 @@ from experiments.utils import compute_fidelity
 
 
 # =============================================================================
-# Alice's Teleportation Program
+# Alice's Program for Nonlocal CNOT Gate using two teleportations
 # =============================================================================
-class AliceTeleportation(Program):
-    """Implements Alice's side of a nonlocal CNOT teleportation experiment.
-
-    Alice generates EPR pairs, applies a CNOT gate, performs measurements,
-    and sends results to Bob using classical communication.
+class Alice2Teleportations(Program):
+    """
+    Implements Alice's side of the nonlocal CNOT gate.
 
     Args:
-        num_epr_rounds (int): Number of EPR rounds for the experiment.
+        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Alice's program with the specified number of rounds.
+        """
+        Initializes Alice's program with the given number of rounds.
 
         Args:
-            num_epr_rounds (int): Number of EPR rounds in the experiment.
+            num_epr_rounds (int): Number of EPR rounds.
         """
         self._num_epr_rounds = num_epr_rounds
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Alice's teleportation program.
+        """Defines metadata for Alice's program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="teleportation",
             csockets=[self.PEER_NAME],
             epr_sockets=[self.PEER_NAME],
-            max_qubits=1,
+            max_qubits=2,
         )
 
     def run(self, context: ProgramContext):
-        """Executes Alice's teleportation process.
-
-        In each round, Alice generates an EPR pair, applies a nonlocal CNOT
-        operation, performs measurements, and sends results to Bob via a
-        classical channel.
+        """
+        Executes Alice's part.
 
         Args:
-            context (ProgramContext): Provides network and connection details.
+            context (ProgramContext): Network and connection details.
 
         """
         csocket = context.csockets[self.PEER_NAME]
@@ -76,14 +81,12 @@ class AliceTeleportation(Program):
         connection = context.connection
 
         for _ in range(self._num_epr_rounds):
-            # Create an EPR pair
+            # Create an EPR pair for the first teleportation
             a1_qubit = epr_socket.create_keep()[0]
 
-            # Create a local control qubit and apply an X gate
+            # Create a local qubit which is the control qubit of the CNOT gate
             alice_qubit = Qubit(connection)
             alice_qubit.X()
-
-            # Perform a nonlocal CNOT operation
             alice_qubit.cnot(a1_qubit)
             alice_qubit.H()
 
@@ -92,35 +95,34 @@ class AliceTeleportation(Program):
             alice_measurement = alice_qubit.measure()
             yield from connection.flush()
 
-            # Send measurement results to Bob
+            # First teleportation is complete after the 2 measures send to Bob
             csocket.send(str(a1_measurement))
             csocket.send(str(alice_measurement))
 
-            # Alice receive the state of Bob after the CNOT gate was applied
-            teleport_recv(context, self.PEER_NAME)
+            # Alice receives the state of Bob after the CNOT gate was applied
+            qubit = yield from teleport_recv(context, self.PEER_NAME)
+            qubit.measure()
             yield from connection.flush()
 
         return {}
 
 
 # =============================================================================
-# Bob's Teleportation Program
+# Bob's for Nonlocal CNOT Gate using two teleportations
 # =============================================================================
-class BobTeleportation(Program):
-    """Implements Bob's side of the nonlocal CNOT teleportation experiment.
-
-    Bob receives EPR pairs, listens to Alice's measurement results,
-    applies correction operations, and measures the final state to compute
-    fidelity.
+class Bob2Teleportations(Program):
+    """
+    Implements Bob's side of the nonlocal CNOT gate.
 
     Args:
-        num_epr_rounds (int): Number of EPR rounds for the experiment.
+        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Bob's program with the specified number of rounds.
+        """
+        Initializes Bob's program with the specified number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds in the experiment.
@@ -131,42 +133,40 @@ class BobTeleportation(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Bob's teleportation program.
+        """
+        Defines metadata for Bob's program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="teleportation",
             csockets=[self.PEER_NAME],
             epr_sockets=[self.PEER_NAME],
-            max_qubits=1,
+            max_qubits=2,
         )
 
     def run(self, context: ProgramContext):
-        """Executes Bob's teleportation process.
-
-        In each round, Bob receives an EPR pair, wait for Alice's measurement
-        results, applies corrections, and measures the final state.
+        """
+        Executes Bob's part.
 
         Args:
-            context (ProgramContext): Provides network and connection details.
+            context (ProgramContext): Network and connection details.
 
         Returns:
-            tuple[list[float], list[float]]: A generator
-            yielding control back to the scheduler and eventually returning a
-            tuple containing lists of fidelities and simulation times.
+            list[tuple[list[float], list[float]]]: A list of tuple containing
+            lists of fidelities and simulation times.
         """
         csocket: Socket = context.csockets[self.PEER_NAME]
         epr_socket: EPRSocket = context.epr_sockets[self.PEER_NAME]
         connection: BaseNetQASMConnection = context.connection
 
         for _ in range(self._num_epr_rounds):
-            # Receive an EPR pair
+            # Receive an EPR pair for the first teleportation
             b1_qubit = epr_socket.recv_keep()[0]
             yield from connection.flush()
 
-            # Create a local qubit to act as the target qubit for CNOT
+            # Create a local qubit which is the target qubit of the CNOT gate
             bob_qubit = Qubit(connection)
 
             # Receive Alice's measurements
@@ -179,21 +179,20 @@ class BobTeleportation(Program):
             if alice_measurement == "1":
                 b1_qubit.Z()
 
-            # Perform CNOT operation and measure the qubit
+            # Perform the distributed CNOT gate locally since Bob
+            # has now the state of Alice in his qubit b1.
             b1_qubit.cnot(bob_qubit)
-
-            # Bob send back his state to Alice
-            teleport_send(bob_qubit, context, self.PEER_NAME)
-
             b1_qubit.measure()
             yield from connection.flush()
 
-            # Compute the fidelity of the final state
+            # Compare density matrices with the expected state
             state_ref = np.array([0, 1], dtype=complex)
             fidelity = compute_fidelity(bob_qubit, "Bob", state_ref)
 
-            bob_qubit.measure()
+            # Bob sends back his state to Alice through a second teleportation
+            yield from teleport_send(bob_qubit, context, self.PEER_NAME)
 
+            # Store the fidelity and simulation time results
             self.fidelities.append(fidelity)
             self.simulation_times.append(sim_time(MILLISECOND))
 
