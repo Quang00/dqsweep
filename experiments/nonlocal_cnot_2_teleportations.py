@@ -2,7 +2,7 @@
 Nonlocal CNOT Gate With Two Teleportations
 ------------------------------------------
 
-This file implements a nonlocal CNOT gate between two parties:
+This module implements a nonlocal CNOT gate between two parties:
 Alice and Bob using two ebits and two bits in each direction. The
 implementation is a general implementation of any nonlocal two qubit
 gate, which uses two quantum teleportations. This approach consumes more

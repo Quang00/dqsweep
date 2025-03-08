@@ -2,7 +2,7 @@
 Nonlocal CNOT Gate
 ------------------
 
-This file implements a nonlocal CNOT gate between two parties:
+This module implements a nonlocal CNOT gate between two parties:
 Alice and Bob using one ebit and one bit in each direction. The
 implementation is from the paper "Optimal local implementation
 of nonlocal quantum gates" (2000), Eisert, Jens et al.

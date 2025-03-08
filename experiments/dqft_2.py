@@ -1,8 +1,9 @@
 """
-DQFT2 Quantum Experiment
---------------------------------
-This file implements a distributed quantum Fourier transform (QFT) on 2 qubits,
-between two nodes (Alice and Bob).
+Distributed Quantum Fourier Transform On Two Qubits
+---------------------------------------------------
+
+This module implements a distributed quantum Fourier transform (QFT)
+on 2 qubits, between two parties: Alice and Bob.
 """
 
 import numpy as np
@@ -25,21 +26,27 @@ class AliceDQFT2(Program):
     Implements Alice's side of the distributed QFT experiment.
 
     Args:
-        num_epr_rounds (int):  Number of EPR rounds for the experiment.
+        num_epr_rounds (int):  Number of EPR rounds.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Alice's program with the specified number of rounds."""
+        """
+        Initializes Alice's program with the given number of rounds.
+
+        Args:
+            num_epr_rounds (int): Number of EPR rounds.
+        """
         self._num_epr_rounds = num_epr_rounds
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Alice's DQFT2 program.
+        """
+        Defines metadata for Alice's DQFT2 program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="dqft",
@@ -93,23 +100,26 @@ class BobDQFT2(Program):
     Implements Bob's side of the distributed QFT experiment.
 
     Args:
-        num_epr_rounds (int): Number of EPR rounds for the experiment.
+        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Bob's program with the specified number of rounds."""
+        """
+        Initializes Bob's program with the specified number of rounds.
+        """
         self._num_epr_rounds = num_epr_rounds
         self.fidelities: list[float] = []
         self.simulation_times: list[float] = []
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Bob's DQFT2 program.
+        """
+        Defines metadata for Bob's DQFT2 program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="dqft",
@@ -123,8 +133,8 @@ class BobDQFT2(Program):
         Executes Bob's part of the DQFT2.
 
         Returns:
-            tuple[list[float], list[float]]: The fidelity and simulation time
-            lists for each round.
+            list[tuple[list[float], list[float]]]: A list of tuple containing
+            lists of fidelities and simulation times.
         """
         csocket: Socket = context.csockets[self.PEER_NAME]
         epr_socket: EPRSocket = context.epr_sockets[self.PEER_NAME]

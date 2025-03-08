@@ -1,7 +1,8 @@
 """
-Distributed Grover Quantum Experiment
--------------------------------------
-This file implements the distributed Grover on 2 qubits,
+Distributed Grover On Two Qubits
+---------------------------------
+
+This module implements the distributed Grover on 2 qubits,
 between two nodes (Alice and Bob) with an initial ping-pong teleportation.
 """
 
@@ -30,21 +31,27 @@ class AliceDGrover2(Program):
     Implements Alice's side of distributed Grover on 2 qubits.
 
     Args:
-        num_epr_rounds (int):  Number of EPR rounds for the experiment.
+        num_epr_rounds (int):  Number of EPR rounds.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Alice's program with the specified number of rounds."""
+        """
+        Initializes Alice's program with the given number of rounds.
+
+        Args:
+            num_epr_rounds (int): Number of EPR rounds.
+        """
         self._num_epr_rounds = num_epr_rounds
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Alice's distributed Grover program.
+        """
+        Defines metadata for Alice's distributed Grover program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="dgrover2",
@@ -93,23 +100,26 @@ class BobDGrover2(Program):
     Implements Bob's side of distributed Grover on 2 qubits.
 
     Args:
-        num_epr_rounds (int): Number of EPR rounds for the experiment.
+        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """Initializes Bob's program with the specified number of rounds."""
+        """
+        Initializes Bob's program with the given number of rounds.
+        """
         self._num_epr_rounds = num_epr_rounds
         self.fidelities: list[float] = []
         self.simulation_times: list[float] = []
 
     @property
     def meta(self) -> ProgramMeta:
-        """Defines metadata for Bob's distributed Grover program.
+        """
+        Defines metadata for Bob's distributed Grover program.
 
         Returns:
-            ProgramMeta: Metadata -> experiment name, sockets, qubit limit.
+            ProgramMeta: Experiment name, sockets, qubit limit.
         """
         return ProgramMeta(
             name="dgrover2",
@@ -123,8 +133,8 @@ class BobDGrover2(Program):
         Executes Bob's part of distributed Grover on 2 qubits.
 
         Returns:
-            tuple[list[float], list[float]]: The fidelity and simulation time
-            lists for each round.
+            list[tuple[list[float], list[float]]]: A list of tuple containing
+            lists of fidelities and simulation times.
         """
 
         for _ in range(self._num_epr_rounds):

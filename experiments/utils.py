@@ -30,7 +30,8 @@ LOG_SCALE_PARAMS = {
 # Helper Functions
 # =============================================================================
 def truncate_param(name: str, char: str = "_", n: int = 4) -> str:
-    """Truncates a parameter name to improve readability in plots.
+    """
+    Truncates a parameter name to improve readability in plots.
 
     Args:
         name (str): Parameter name to truncate.
@@ -46,7 +47,8 @@ def truncate_param(name: str, char: str = "_", n: int = 4) -> str:
 def create_subdir(
     directory: str, experiment: str, sweep_params: Union[list, str]
 ) -> str:
-    """Creates a structured subdirectory for storing experiment results.
+    """
+    Creates a structured subdirectory for storing experiment results.
 
     Args:
         directory (str): The main results directory (e.g., "results").
@@ -82,7 +84,8 @@ def create_subdir(
 
 
 def parse_range(range_str: str, param_name: str) -> np.ndarray:
-    """Parses a range string and returns a numpy array of values.
+    """
+    Parses a range string and returns a numpy array of values.
 
     Uses logarithmic scaling if the parameter is in LOG_SCALE_PARAMS.
 
@@ -129,7 +132,8 @@ def metric_correlation(
     output_dir: str,
     experiment: str,
 ):
-    """Computes and generate a txt file for parameter-performance correlation.
+    """
+    Computes and generate a txt file for parameter-performance correlation.
 
     Args:
         df (pd.DataFrame): Dataframe containing parameter values and metrics.
