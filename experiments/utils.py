@@ -155,6 +155,45 @@ def metric_correlation(
     print(f"Saved correlation values to {filename}")
 
 
+def run_simulation(
+    config: str,
+    epr_rounds: int = 10,
+    num_times: int = 10,
+    alice_cls=None,
+    bob_cls=None,
+):
+    """
+    Runs a simulation with the given configuration and program classes.
+
+    Args:
+        config (str): Path to the network configuration YAML file.
+        epr_rounds (int): Number of EPR rounds to execute in the simulation.
+        num_times (int): Number of simulation repetitions.
+        alice_cls (type): The class implementing Alice's program.
+        bob_cls (type): The class implementing Bob's program.
+
+    Returns:
+        dict: A dictionary containing simulation results for each node.
+    """
+    if alice_cls is None or bob_cls is None:
+        raise ValueError("Alice class and Bob class must be provided.")
+
+    # Load the network configuration.
+    cfg = StackNetworkConfig.from_file(config)
+
+    alice_program = alice_cls(num_epr_rounds=epr_rounds)
+    bob_program = bob_cls(num_epr_rounds=epr_rounds)
+
+    # Run the simulation with the provided configuration.
+    results = run(
+        config=cfg,
+        programs={"Alice": alice_program, "Bob": bob_program},
+        num_times=num_times,
+    )
+
+    return results
+
+
 # =============================================================================
 # Plotting Functions
 # =============================================================================
@@ -276,45 +315,6 @@ def plot_combined_heatmaps(
         plt.savefig(filename, dpi=300)
         plt.close(fig)
         print(f"Saved combined heatmaps to {filename}")
-
-
-def run_simulation(
-    config: str,
-    epr_rounds: int = 10,
-    num_times: int = 10,
-    alice_cls=None,
-    bob_cls=None,
-):
-    """
-    Runs a simulation with the given configuration and program classes.
-
-    Args:
-        config (str): Path to the network configuration YAML file.
-        epr_rounds (int): Number of EPR rounds to execute in the simulation.
-        num_times (int): Number of simulation repetitions.
-        alice_cls (type): The class implementing Alice's program.
-        bob_cls (type): The class implementing Bob's program.
-
-    Returns:
-        dict: A dictionary containing simulation results for each node.
-    """
-    if alice_cls is None or bob_cls is None:
-        raise ValueError("Alice class and Bob class must be provided.")
-
-    # Load the network configuration.
-    cfg = StackNetworkConfig.from_file(config)
-
-    alice_program = alice_cls(num_epr_rounds=epr_rounds)
-    bob_program = bob_cls(num_epr_rounds=epr_rounds)
-
-    # Run the simulation with the provided configuration.
-    results = run(
-        config=cfg,
-        programs={"Alice": alice_program, "Bob": bob_program},
-        num_times=num_times,
-    )
-
-    return results
 
 
 # =============================================================================

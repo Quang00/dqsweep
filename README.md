@@ -56,5 +56,5 @@ python -m experiments.run_simulation \
   --epr_rounds 10 \
   --num_experiments 10 \
   --sweep_params T1,T2,single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
-  --ranges "1e10,10e7,10" "1e10,10e7,10" "0.0,0.8,10" "0.0,0.8,10"
+  --ranges "9,7,10" "9,7,10" "0.0,0.8,10" "0.0,0.8,10"
 ```

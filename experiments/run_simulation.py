@@ -1,23 +1,48 @@
 """
-Run Simulation
---------------
+Quantum Distributed Experiment Simulator
+========================================
 
-This script runs a specified quantum network experiment while sweeping one or
-more parameters from a given configuration. For each parameter combination the simulation
-is executed (averaging over a number of experiments) and the average fidelity
-and simulation time are computed. The results are collected into a pandas
-DataFrame, saved as a CSV file, and then the following plots are generated:
-  - 2D heatmaps for each performance metric for unique pair of swept parameters
-  - A parameter–performance correlation heatmap (showing the correlation
-  between each input parameter and each performance metric).
+Overview:
+---------
+This script simulates distributed quantum experiments using a configurable
+setup. It allows to sweep one or more parameters over defined ranges and then
+execute multiple simulation runs for each parameter combination. For every run,
+it calculates two performance metrics: the average fidelity (as a percentage)
+and the average simulation time (in milliseconds).
 
-Args:
-  --config         Path to the configuration YAML file.
-  --experiment     Experiment to simulate.
-  --epr_rounds     Number of EPR rounds (default 10).
-  --num_experiments Number of experiments per parameter combination.
-  --sweep_params   Comma-separated list of parameter names to sweep.
-  --ranges         One range string per parameter (format: "start,end,points").
+Process:
+--------
+1. Parameter Sweep:
+   - Generates all combinations of values for the specified parameters.
+   - For each combination, it executes the simulation a certain amount of times
+     which is configurable by the user and computes the mean fidelity and
+     simulation time.
+
+2. Data Generation:
+   - Raw results and computed averages for each parameter combination are
+     stored in a pandas DataFrame and saved as a CSV file.
+   - Parameter–Performance Correlation txt file is provided and shows the
+     correlations between the input parameters and the performance metrics.
+
+3. Visualization:
+   - 2D Heatmaps: These are generated for each performance metric based on
+     each unique pair of swept parameters.
+
+Usage:
+------
+Run the script with the following command-line arguments:
+
+  --config         Path to the YAML config file that defines the network setup
+  --experiment     Experiment to simulate (e.g., cnot, pingpong, dgrover2, ...)
+  --epr_rounds     Number of EPR rounds per simulation
+  --num_experiments Number of simulation runs per parameter combination
+  --sweep_params   Comma-separated list of parameter names for the sweep.
+  --ranges         For each swept parameter, provide a range in the format
+                   "start,end,points", where start is the initial value, end
+                   is the final value, and points is the number of values
+                   (or steps) to generate between start and end.
+  --output_dir     Directory where the CSV file, txt file and generated plots
+                   will be saved.
 """
 
 import argparse
@@ -26,24 +51,24 @@ import os
 
 import numpy as np
 import pandas as pd
-from experiments.nonlocal_cnot import AliceProgram, BobProgram
-from experiments.dqft_2 import AliceDQFT2, BobDQFT2
+
 from experiments.dgrover_2 import AliceDGrover2, BobDGrover2
+from experiments.dqft_2 import AliceDQFT2, BobDQFT2
+from experiments.nonlocal_cnot import AliceProgram, BobProgram
+from experiments.nonlocal_cnot_2_teleportations import (
+    Alice2Teleportations,
+    Bob2Teleportations,
+)
 from experiments.pingpong import (
     AlicePingpongTeleportation,
     BobPingpongTeleportation
 )
-from experiments.nonlocal_cnot_2_teleportations import (
-    Alice2Teleportations,
-    Bob2Teleportations
-)
 from experiments.utils import (
     create_subdir,
+    metric_correlation,
     parse_range,
     plot_combined_heatmaps,
-    metric_correlation,
 )
-
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
 
@@ -129,24 +154,29 @@ def sweep_parameters(
         )
 
     df = pd.DataFrame(results)
-    df.to_csv(os.path.join(output_dir, f"{experiment}_results.csv"),
-              index=False)
+    df.to_csv(
+        os.path.join(output_dir, f"{experiment}_results.csv"), index=False
+    )
     return df
 
 
 def main():
     """
-    Parses command-line arguments, runs simulations, and generates plots.
+    Main entry point for the Distributed Quantum Experiments Simulation Script.
 
-    This function reads configuration arguments, executes parameter sweeps
-    if specified, and generates corresponding plots for visualization.
+    This function launches the simulation, starting from the parsing
+    command-line arguments to generating performance plots (Heat maps),
+    raw results (csv file), and correlation analyses (txt file).
 
     """
     parser = argparse.ArgumentParser(
-        description="Simulate quantum network experiments"
+        description="Simulate distributed quantum experiments"
     )
     parser.add_argument(
-        "--config", type=str, required=True, help="Path to the configuration."
+        "--config",
+        type=str,
+        default="configurations/perfect.yaml",
+        help="Path to the configuration."
     )
     parser.add_argument(
         "--experiment",
@@ -155,7 +185,10 @@ def main():
         help="Distributed experiments (e.g., cnot, pingpong, dgrover2, ...).",
     )
     parser.add_argument(
-        "--epr_rounds", type=int, default=10, help="Number of EPR rounds."
+        "--epr_rounds",
+        type=int,
+        default=10,
+        help="Number of EPR rounds."
     )
     parser.add_argument(
         "--num_experiments",
@@ -166,27 +199,28 @@ def main():
     parser.add_argument(
         "--sweep_params",
         type=str,
+        default="single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob",
         help="Comma-separated list of configuration parameter names to sweep",
     )
     parser.add_argument(
         "--ranges",
         nargs="+",
         type=str,
+        default=["0.0,0.8,10", "0.0,0.8,10"],
         help="One range string per parameter (format: 'start,end,points').",
     )
     parser.add_argument(
-        "--output_dir", type=str, default="results", help="Output directory"
+        "--output_dir",
+        type=str,
+        default="results",
+        help="Output directory"
     )
     args = parser.parse_args()
 
-    if args.experiment == "pingpong" and args.epr_rounds % 2 == 0:
-        print("ArgumentError: You need to specify an odd number of epr rounds")
-        return
-
-    unique_output_dir = create_subdir(
+    output_dir = create_subdir(
         args.output_dir, args.experiment, args.sweep_params
     )
-    print(f"Using output directory: {unique_output_dir}")
+    print(f"Using output directory: {output_dir}")
 
     cfg = StackNetworkConfig.from_file(args.config)
 
@@ -206,7 +240,7 @@ def main():
             sweep_params,
             args.ranges,
             args.experiment,
-            output_dir=unique_output_dir,
+            output_dir=output_dir,
         )
         print("Sweep completed. Preview of results:")
         print(df.head())
@@ -216,7 +250,7 @@ def main():
             df,
             sweep_params,
             ["Average Fidelity (%)", "Average Simulation Time (ms)"],
-            unique_output_dir,
+            output_dir,
             args.experiment,
         )
 
@@ -226,17 +260,16 @@ def main():
             for param, rng_str in zip(sweep_params, args.ranges)
         }
 
+        # Generate heat maps for each metrics or a combined heat map
         plot_combined_heatmaps(
             df,
             sweep_params,
             param_range_dict,
-            unique_output_dir,
+            output_dir,
             args.experiment,
             args.epr_rounds,
             separate_files=True,
         )
-    else:
-        print("No sweep parameters provided.")
 
 
 if __name__ == "__main__":
