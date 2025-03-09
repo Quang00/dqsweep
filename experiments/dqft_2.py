@@ -119,7 +119,7 @@ class BobDQFT2(Program):
 
     def __init__(self, num_epr_rounds: int):
         """
-        Initializes Bob's program with the specified number of rounds.
+        Initializes Bob's program with the given number of rounds.
         """
         self._num_epr_rounds = num_epr_rounds
         self.fidelities: list[float] = []

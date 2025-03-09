@@ -3,7 +3,18 @@ Distributed Grover On Two Qubits
 ---------------------------------
 
 This module implements the distributed Grover on 2 qubits,
-between two nodes (Alice and Bob) with an initial ping-pong teleportation.
+between two parties: Alice and Bob.
+
+Alice's qubit is in state |0> and Bob's qubit should be in state |+>
+if the inital ping-pong teleportation was performed without noise. After
+the distributed Grover, the expected state should be -|11>, which is assess
+by the expected density matrix compared to the output density matrix that gives
+the fidelity.
+
+Note: The implementation incorporates an initial ping-pong teleportation with
+`n = 3` where Alice initiates and sends the state of Bob's qubit. Then, Bob
+receives and sends it back to Alice. Finally, she sends once again the qubit
+and then the distributed Grover starts with this back-and-forth qubit.
 """
 
 import numpy as np
