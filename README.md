@@ -63,10 +63,6 @@ The experiments are executed through the `run_simulation.py` script, which perfo
      - A TXT file with parameter-to-metric correlation values.
      - Heat map plots with the performance results.
 
-4. **Analyze the Results:**
-   - Open the CSV file to review the detailed simulation data.
-   - Use the heatmap images to explore how variations in the parameters affect fidelity and simulation times.
-
 ### The Distributed Experiments
 
 The provied experiments:
