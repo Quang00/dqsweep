@@ -4,6 +4,18 @@ Distributed Quantum Fourier Transform On Two Qubits
 
 This module implements a distributed quantum Fourier transform (QFT)
 on 2 qubits, between two parties: Alice and Bob.
+
+The QFT maps a state in computational Z basis into a state in Fourier
+Basis. In this experiment, we want to map 0 which is |00> in Z basis.
+Thus, after the QFT we expect the state 1/2 (|00> + |01> + |10> + |11>).
+
+Alice's qubit is in state |0> and Bob's qubit is in state |0>. To implement,
+the distributed version we use one ebit and one bit in each direction. And then
+verify that the output density matrix correpond to the expected density matrix.
+
+Note: The controlled phase gate which induces a phase on the state of the
+target qubit is not implemented in squidasm. Thus, this implementation
+approximates it with a combination of rotational Z gates and CNOT gate.
 """
 
 import numpy as np
