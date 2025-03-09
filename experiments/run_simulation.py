@@ -166,7 +166,7 @@ def main():
 
     This function launches the simulation, starting from the parsing
     command-line arguments to generating performance plots (Heat maps),
-    raw results (csv file), and correlation analyses (txt file).
+    raw results (csv file), and correlation analysis (txt file).
 
     """
     parser = argparse.ArgumentParser(
