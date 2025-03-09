@@ -3,12 +3,13 @@ Pingpong Teleportation
 ----------------------
 
 This module implements a quantum teleportation ping-pong experiment
-between two parties: Alice and Bob. The experiment alternates a
-qubit between transmission and reception.
+between two parties: Alice and Bob. The experiment initializes a qubit
+in a random state and then does a back-and-forth with it between the
+two parties.
 
-Alice sends this initial qubit during even rounds and receives one during
-odd rounds. Bob does the opposite, he receives the same qubit during even
-rounds and sends back to Alice during odd rounds.
+Alice sends this initial qubit during even rounds and receives the same
+qubit during odd rounds. Bob does the opposite, he receives this qubit
+during even rounds and sends it back to Alice during odd rounds.
 """
 
 import numpy as np
