@@ -104,6 +104,7 @@ python -m experiments.run_simulation \
 
 ## Example Result (Heat map) from command 1: Nonlocal CNOT (Depolarization Sweep)
 
+<img src=docs/cnot_heat_fidelity.png width="60%" height="60%">
 
 ## References
 <a id="1">[1]</a> 
