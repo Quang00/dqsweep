@@ -102,7 +102,7 @@ python -m experiments.run_simulation \
 
 ### Example Result (Heat map) from command 2: Distributed Grover on 2 qubits (Depolarization Sweep)
 
-<img src=docs/cnot_heat_fidelity.png width="60%" height="60%">
+<img src=docs/dgrover2_heat_fidelity.png width="60%" height="60%">
 
 ## References
 <a id="1">[1]</a> 
