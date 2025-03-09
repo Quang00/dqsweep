@@ -288,10 +288,13 @@ def plot_combined_heatmaps(
         figsize = (12 * len(pairs), 8)
         for metric in metrics:
             fig, axes = plt.subplots(1, len(pairs), figsize=figsize)
+
             if len(pairs) == 1:
                 axes = [axes]
+
             for ax, (p, q) in zip(axes, pairs):
                 plot_heatmap(ax, df, p, q, metric, params, exp, epr_rounds)
+
             plt.tight_layout()
             suffix = f"{(epr_rounds + 1) // 2}" if exp == "pingpong" else ""
             filename = os.path.join(
@@ -307,9 +310,13 @@ def plot_combined_heatmaps(
         # Ensure axes is 2D even when there's only one pair.
         if len(pairs) == 1:
             axes = np.array([axes]).reshape(len(metrics), 1)
+
         for i, metric in enumerate(metrics):
             for j, (p, q) in enumerate(pairs):
-                plot_heatmap(axes[i, j], df, p, q, metric, params, exp, epr_rounds)
+                plot_heatmap(
+                    axes[i, j], df, p, q, metric, params, exp, epr_rounds
+                )
+
         plt.tight_layout()
         filename = os.path.join(output_dir, f"{exp}_heatmaps.png")
         plt.savefig(filename, dpi=300)

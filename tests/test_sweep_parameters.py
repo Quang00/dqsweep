@@ -4,7 +4,13 @@ from experiments.run_simulation import sweep_parameters
 from squidasm.run.stack.config import StackNetworkConfig
 
 
-def test_basic_perfect_yaml(tmp_path):
+def test_basic_perfect_config(tmp_path):
+    """
+    Test sweep parameters with the perfect configuration.
+
+    Args:
+        tmp_path (str): Temporary path directory.
+    """
     cfg = StackNetworkConfig.from_file("configurations/perfect.yaml")
 
     # Define sweep parameters and ranges.
