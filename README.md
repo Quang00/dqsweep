@@ -22,12 +22,15 @@ The experiments implemented in this repository include:
 ## Installation
 
 1. **Create a Python Virtual Environment:**
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 python3 -m pip install -U pip
 ```
+
 2. **Install SquidASM**
+
 ```bash
 export NETSQUIDPYPI_USER=user1234
 export NETSQUIDPYPI_PWD=password1234
@@ -73,8 +76,9 @@ The provied experiments:
 - **`pingpong`**: Ping-pong quantum teleportation between Alice and Bob.
 - **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.
 - **`dgrover2`**: Distributed Grover on 2 qubits.
-  
+
 ### Example Command 1: Nonlocal CNOT (Depolarization Sweep)
+
 ```bash
 python -m experiments.run_simulation \
   --config configurations/perfect.yaml \
@@ -90,6 +94,7 @@ python -m experiments.run_simulation \
 <img src=docs/cnot_heat_fidelity.png width="60%" height="60%">
 
 ### Example Command 2: Distributed Grover on 2 qubits (Depolarization Sweep)
+
 ```bash
 python -m experiments.run_simulation \
   --config configurations/perfect.yaml \
@@ -105,5 +110,6 @@ python -m experiments.run_simulation \
 <img src=docs/dgrover2_heat_fidelity.png width="60%" height="60%">
 
 ## References
-<a id="1">[1]</a> 
-Eisert, Jens & Jacobs, Karel & Papadopoulos, Periklis & Plenio, M.. (2000). Optimal local implementation of nonlocal quantum gates. Phys. Rev. A. 62. 10.1103/PhysRevA.62.052317. 
+
+<a id="1">[1]</a>
+Eisert, Jens & Jacobs, Karel & Papadopoulos, Periklis & Plenio, M.. (2000). Optimal local implementation of nonlocal quantum gates. Phys. Rev. A. 62. 10.1103/PhysRevA.62.052317.
