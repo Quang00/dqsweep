@@ -29,7 +29,7 @@ source .venv/bin/activate
 python3 -m pip install -U pip
 ```
 
-2. **Install SquidASM**
+2. **Install SquidASM** (The credentials from Netsquid are required.)
 
 ```bash
 export NETSQUIDPYPI_USER=user1234
