@@ -38,49 +38,11 @@ make install
 
 ## Usage
 
-The experiments are executed through the `run_simulation.py` script, which performs parameter sweeps, runs the specified distributed quantum experiment, and aggregates the results. The script accomplishes the following:
-
-- Reads a network configuration from a YAML file.
-- Sweeps one or more parameters across defined ranges.
-- Executes the chosen experiment multiple times for each parameter combination.
-- Saves raw results in CSV format, computes correlations between parameters and performance metrics, and generates heat map visualizations.
-
-### Running an Experiment
-
-Choose an experiment from the following options:
-
-- **`cnot`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
-- **`2_teleportations`**: Nonlocal CNOT gate using two teleportations.
-- **`pingpong`**: Ping-pong teleportation.
-- **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.
-- **`dgrover2`**: Distributed Grover search on 2 qubits.
-
-#### Example Command 1: Nonlocal CNOT (Depolarization Sweep)
-```bash
-python -m experiments.run_simulation \
-  --config configurations/perfect.yaml \
-  --experiment cnot \
-  --epr_rounds 10 \
-  --num_experiments 100 \
-  --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
-  --ranges "0.0,0.8,10" "0.0,0.8,10"
-```
-#### Example Command 2: Distributed Grover on 2 qubits (Depolarization Sweep)
-```bash
-python -m experiments.run_simulation \
-  --config configurations/perfect.yaml \
-  --experiment dgrover2 \
-  --epr_rounds 10 \
-  --num_experiments 100 \
-  --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
-  --ranges "0.0,0.8,10" "0.0,0.8,10"
-```
-
-## Running the Simulations
+The experiments are executed through the `run_simulation.py` script, which performs parameter sweeps, runs the specified distributed quantum experiment, and aggregates the results. To run the simulation:
 
 1. **Prepare Configuration Files:**
 
-   - Provide a valid quantum network configuration or use the ones provided (e.g., `perfect.yaml`, `depolarise_link.yaml`) in the `configurations/` folder.
+   - Provide a valid quantum network configuration or use the ones already provided (e.g., `perfect.yaml`, `depolarise_link.yaml`) in the `configurations/` folder.
 
 2. **Select the Experiment and Parameters:**
 
@@ -102,7 +64,43 @@ python -m experiments.run_simulation \
    - Open the CSV file to review the detailed simulation data.
    - Use the heatmap images to explore how variations in the parameters affect fidelity and simulation times.
 
-## Example Result (Heat map) from command 1: Nonlocal CNOT (Depolarization Sweep)
+### The Distributed Experiments
+
+The provied experiments:
+
+- **`cnot`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
+- **`2_teleportations`**: Nonlocal CNOT gate using two teleportations.
+- **`pingpong`**: Ping-pong quantum teleportation between Alice and Bob.
+- **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.
+- **`dgrover2`**: Distributed Grover on 2 qubits.
+  
+### Example Command 1: Nonlocal CNOT (Depolarization Sweep)
+```bash
+python -m experiments.run_simulation \
+  --config configurations/perfect.yaml \
+  --experiment cnot \
+  --epr_rounds 10 \
+  --num_experiments 100 \
+  --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
+  --ranges "0.0,0.8,10" "0.0,0.8,10"
+```
+
+### Example Result (Heat map) from command 1: Nonlocal CNOT (Depolarization Sweep)
+
+<img src=docs/cnot_heat_fidelity.png width="60%" height="60%">
+
+### Example Command 2: Distributed Grover on 2 qubits (Depolarization Sweep)
+```bash
+python -m experiments.run_simulation \
+  --config configurations/perfect.yaml \
+  --experiment dgrover2 \
+  --epr_rounds 10 \
+  --num_experiments 100 \
+  --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
+  --ranges "0.0,0.8,10" "0.0,0.8,10"
+```
+
+### Example Result (Heat map) from command 2: Distributed Grover on 2 qubits (Depolarization Sweep)
 
 <img src=docs/cnot_heat_fidelity.png width="60%" height="60%">
 
