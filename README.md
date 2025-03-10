@@ -57,8 +57,8 @@ The experiments are executed through the `run_simulation.py` script, which does 
    - (**`--experiment`**): Choose the experiment to run (options include `cnot`, `pingpong`, `dqft2`, `dgrover2`, or `2_teleportations`). The default experiment is `cnot`.
    - (**`--epr_rounds`**): Specify the number of EPR rounds per simulation. The default number is `10`.
    - (**`--num_experiments`**): Specify the number of simulation runs per parameter combination. The default number is `10`.
-   - (**`--sweep_params`**): Define the comma-separated list of parameter to sweep (e.g., single_qubit_gate_depolar_prob, two_qubit_gate_depolar_prob, T1, T2, etc.). The default parameters are `single_qubit_gate_depolar_prob`, `two_qubit_gate_depolar_prob`.
-   - (**`--ranges`**): Provide for each swept parameter a valid range in the format "start,end,points". The default ranges are `"0.0,0.8,10"`, `"0.0,0.8,10"`.
+   - (**`--sweep_params`**): Define the comma-separated list of parameter to sweep (e.g., single_qubit_gate_depolar_prob, two_qubit_gate_depolar_prob, T1, T2, etc.). The default parameters are `single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob`.
+   - (**`--ranges`**): Provide for each swept parameter a valid range in the format "start,end,points". The default ranges are `"0.0,0.8,10" "0.0,0.8,10"`.
    - (**`--output_dir`**): Define the path of the directory to save the results. The default folder is `results`.
 
 3. **Execute the Simulation:**
