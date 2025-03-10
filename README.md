@@ -63,7 +63,7 @@ The experiments are executed through the `run_simulation.py` script, which does 
 
 3. **Execute the Simulation:**
 
-   - Run the `run_simulation.py` script with appropriate command-line arguments. For example, this commad will launch the simulation with the default configuration, experiment and parameters:
+   - Run the `run_simulation.py` script with the setup. The basic command to launch the simulation with the default configuration, experiment and parameters (see below for a complete command line):
      ```bash
      python -m experiments.run_simulation
      ```
