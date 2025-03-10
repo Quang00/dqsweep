@@ -6,16 +6,16 @@ This repository is designed to analyze the performance (fidelity and latency) of
 
 ## Overview
 
-The project explores the performance of several quantum distributed experiments by sweeping parameters (such as depolarization probabilities, gate times, and qubit coherence times) of a given quantum network and then assess two metrics:
+The project explores the performance of several quantum distributed experiments by sweeping given parameters (such as depolarization probabilities, gate times, and qubit coherence times) from a quantum network and then assess two metrics:
 
-- **Average Fidelity (%):** Output density matrix compared to the expected density matrix.
+- **Average Fidelity (%):** Density matrix output compared to the density matrix expected.
 - **Average Simulation Time (ms):** Simulation time to execute the experiment.
 
 The experiments implemented in this repository include:
 
 - **Nonlocal CNOT Gate:** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
-- **Nonlocal CNOT Gate with Two Teleportations:** Another approach that performs the distributed CNOT gate using two quantum teleportations.
-- **Ping-Pong Teleportation:** A bidirectional teleportation protocol where a qubit is sent back and forth between Alice and Bob.
+- **Nonlocal CNOT Gate with Two Teleportations:** Another implementation of the distributed CNOT gate using two quantum teleportations.
+- **Ping-Pong Teleportation:** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits:** Implementation of a distributed QFT on two qubits.
 - **Distributed Grover on Two Qubits:** Implementation of a distributed Grover on two qubits.
 
@@ -35,13 +35,18 @@ python3 -m pip install -U pip
 export NETSQUIDPYPI_USER=user1234
 export NETSQUIDPYPI_PWD=password1234
 git clone git@github.com:QuTech-Delft/squidasm.git
-cd squidasm
-make install
+make install -C squidasm
+```
+
+3. **Verify the installation **
+
+```bash
+pytest
 ```
 
 ## Usage
 
-The experiments are executed through the `run_simulation.py` script, which performs parameter sweeps, runs the specified distributed quantum experiment, and aggregates the results. To run the simulation:
+The experiments are executed through the `run_simulation.py` script, which does the parameter sweeps, runs the given distributed quantum experiment, and produces the results in a folder containing different files. To run the simulation:
 
 1. **Prepare Configuration Files:**
 
