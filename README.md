@@ -13,7 +13,7 @@ The project explores the performance of several quantum distributed experiments 
 
 The experiments implemented in this repository include:
 
-- **Nonlocal CNOT Gate(`nonlocal_cnot.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
+- **Nonlocal CNOT Gate (`nonlocal_cnot.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
 - **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_2_teleportations.py`):** Another implementation of the distributed CNOT gate using two quantum teleportations.
 - **Ping-Pong Teleportation (`pingpong.py`):** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits (`dqft_2.py`):** Implementation of a distributed QFT on two qubits.
