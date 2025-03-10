@@ -38,7 +38,7 @@ git clone git@github.com:QuTech-Delft/squidasm.git
 make install -C squidasm
 ```
 
-3. **Verify the installation **
+3. **Verify the installation**
 
 ```bash
 pytest
