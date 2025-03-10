@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Pytest and Flake8 validation
+name: Pytest, Flake8 and Coverage
 
 on:
   push:
@@ -22,6 +22,7 @@ jobs:
     env:
       NETSQUIDPYPI_USER: ${{ secrets.NETSQUIDPYPI_USER }}
       NETSQUIDPYPI_PWD: ${{ secrets.NETSQUIDPYPI_PWD }}
+      COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 pytest
+          pip install flake8 pytest coveralls coverage
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Lint with flake8
         run: |
@@ -49,12 +50,14 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-      - name: Test with pytest
+      - name: Run tests with coverage
         run: |
-          pytest tests
-      - name: Test Coverage
+            coverage run --source=experiments -m pytest tests/
+            coverage report -m
+            coverage xml  # Generate coverage.xml for Coveralls
+
+      - name: Upload coverage to Coveralls
         uses: coverallsapp/github-action@v2
         with:
-          github-token: ${{ GITHUB.TOKEN }}
-        env:
-            COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            path-to-lcov: coverage.xml
