@@ -5,8 +5,7 @@ from experiments.utils import run_simulation
 
 
 def test_alice_ket_0_bob_ket_0():
-    """
-    Test the distributed quantum grover with:
+    """Test the distributed quantum grover with:
 
     - Alice's qubit is in state |0>.
     - Bob's qubit is in state |0>.
@@ -26,4 +25,4 @@ def test_alice_ket_0_bob_ket_0():
     avg_fidelity = np.mean(all_fid_results)
 
     # Check that the average fidelity is equal to 1.
-    assert avg_fidelity == 1.0
+    np.testing.assert_equal(avg_fidelity, 1.0)

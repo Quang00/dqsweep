@@ -1,12 +1,12 @@
 import os
+import numpy as np
 
 from experiments.run_simulation import sweep_parameters
 from squidasm.run.stack.config import StackNetworkConfig
 
 
 def test_basic_perfect_config(tmp_path):
-    """
-    Test sweep parameters with the perfect configuration.
+    """Test sweep parameters with the perfect configuration.
 
     Args:
         tmp_path (str): Temporary path directory.
@@ -34,10 +34,12 @@ def test_basic_perfect_config(tmp_path):
 
     # Check that the CSV file was created.
     output_file = os.path.join(output_dir, f"{experiment}_results.csv")
-    assert os.path.exists(output_file), "CSV output file was not created."
+    np.testing.assert_equal(
+        os.path.exists(output_file), True, err_msg="CSV file was not created."
+    )
 
     # There should be 2 values per parameter, so 2*2 = 4 rows.
-    assert df.shape[0] == 4, "Invalid number of rows."
+    np.testing.assert_equal(df.shape[0], 4, err_msg="Invalid number of rows.")
 
     # Verify the expected columns are present.
     expected_columns = [
@@ -48,5 +50,7 @@ def test_basic_perfect_config(tmp_path):
         "Average Fidelity (%)",
         "Average Simulation Time (ms)",
     ]
-    for col in expected_columns:
-        assert col in df.columns, f"Missing expected column: {col}"
+
+    np.testing.assert_array_equal(
+        np.sort(df.columns), np.sort(expected_columns)
+    )

@@ -8,8 +8,7 @@ from experiments.utils import run_simulation
 
 
 def test_alice_ket_1_bob_ket_0():
-    """
-    Test the nonlocal CNOT gate using the approach with 2 teleportations:
+    """Test the nonlocal CNOT gate using the approach with 2 teleportations:
 
     - Alice's control qubit is in state |1>.
     - Bob's target qubit is in state |0>.
@@ -29,4 +28,4 @@ def test_alice_ket_1_bob_ket_0():
     avg_fidelity = np.mean(all_fid_results)
 
     # Check that the average fidelity is equal to 1.
-    assert avg_fidelity == 1.0
+    np.testing.assert_equal(avg_fidelity, 1.0)
