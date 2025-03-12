@@ -34,22 +34,17 @@ THETA = np.random.random() * np.pi
 # Alice's Ping-Pong Teleportation Program
 # =============================================================================
 class AlicePingpongTeleportation(Program):
-    """
-    Implements Alice's side of the ping-pong teleportation experiment.
+    """Implements Alice's side of the ping-pong teleportation experiment.
 
     Alice alternates between sending and receiving qubits across multiple
     rounds. In even rounds, Alice sends the qubit, while odd rounds Alice
     receives the qubit.
-
-    Args:
-        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Alice's program with the given number of rounds.
+        """Initializes Alice's program with the given number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds.
@@ -60,8 +55,7 @@ class AlicePingpongTeleportation(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """
-        Defines metadata for Alice's program.
+        """Defines metadata for Alice's program.
 
         Returns:
             ProgramMeta: Experiment name, sockets, qubit limit.
@@ -74,8 +68,7 @@ class AlicePingpongTeleportation(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Alice's routine.
+        """Executes Alice's routine.
 
         In even rounds, Alice prepares and sends a qubit. In odd rounds,
         she receives the qubit from Bob.
@@ -100,22 +93,17 @@ class AlicePingpongTeleportation(Program):
 # Bob's Ping-Pong Teleportation Program
 # =============================================================================
 class BobPingpongTeleportation(Program):
-    """
-    Implements Bob's side of the ping-pong teleportation experiment.
+    """Implements Bob's side of the ping-pong teleportation experiment.
 
     Bob alternates between receiving and sending qubits across multiple
     rounds. Even rounds involve receiving a qubit, while odd rounds involve
     sending the qubit.
-
-    Args:
-        num_epr_rounds (int): Number of EPR rounds.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Bob's program with the given number of rounds.
+        """Initializes Bob's program with the given number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds.
@@ -124,8 +112,7 @@ class BobPingpongTeleportation(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """
-        Defines metadata for Bob's program.
+        """Defines metadata for Bob's program.
 
         Returns:
             ProgramMeta: Experiment name, sockets, qubit limit.
@@ -138,8 +125,7 @@ class BobPingpongTeleportation(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Bob's routine.
+        """Executes Bob's routine.
 
         In even rounds, Bob receives a qubit.
         In odd rounds, Bob sends the qubit.

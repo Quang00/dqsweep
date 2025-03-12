@@ -1,6 +1,6 @@
 import itertools
 import os
-from typing import Generator, Union
+from typing import Any, Generator, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -30,8 +30,7 @@ LOG_SCALE_PARAMS = {
 # Helper Functions
 # =============================================================================
 def truncate_param(name: str, char: str = "_", n: int = 4) -> str:
-    """
-    Truncates a parameter name to improve readability in plots.
+    """Truncates a parameter name to improve readability in plots.
 
     Args:
         name (str): Parameter name to truncate.
@@ -47,8 +46,7 @@ def truncate_param(name: str, char: str = "_", n: int = 4) -> str:
 def create_subdir(
     directory: str, experiment: str, sweep_params: Union[list, str]
 ) -> str:
-    """
-    Creates a structured subdirectory for storing experiment results.
+    """Creates a structured subdirectory for storing experiment results.
 
     Args:
         directory (str): The main results directory (e.g., "results").
@@ -84,8 +82,7 @@ def create_subdir(
 
 
 def parse_range(range_str: str, param_name: str) -> np.ndarray:
-    """
-    Parses a range string and returns a numpy array of values.
+    """Parses a range string and returns a numpy array of values.
 
     Uses logarithmic scaling if the parameter is in LOG_SCALE_PARAMS.
 
@@ -106,8 +103,7 @@ def parse_range(range_str: str, param_name: str) -> np.ndarray:
 
 
 def compute_fidelity(qubit: Qubit, owner: str, dm_state: np.ndarray) -> float:
-    """
-    Computes the fidelity between the density matrix of a given qubit and
+    """Computes the fidelity between the density matrix of a given qubit and
     the density matrix constructed from a reference state vector.
 
     Args:
@@ -132,8 +128,7 @@ def metric_correlation(
     output_dir: str,
     experiment: str,
 ):
-    """
-    Computes and generate a txt file for parameter-performance correlation.
+    """Computes and generate a txt file for parameter-performance correlation.
 
     Args:
         df (pd.DataFrame): Dataframe containing parameter values and metrics.
@@ -162,8 +157,7 @@ def run_simulation(
     alice_cls=None,
     bob_cls=None,
 ):
-    """
-    Runs a simulation with the given configuration and program classes.
+    """Runs a simulation with the given configuration and program classes.
 
     Args:
         config (str): Path to the network configuration YAML file.
@@ -194,12 +188,87 @@ def run_simulation(
     return results
 
 
+def param_exists_in_config(cfg: StackNetworkConfig, param: str) -> bool:
+    """Check if a given parameter exists in the configuration.
+
+    Args:
+        cfg (StackNetworkConfig): Network configuration.
+        param (str): Name of the parameter.
+
+    Returns:
+        bool: True if the parameter exists in the config otherwise False.
+    """
+    # Check in stacks
+    for stack in getattr(cfg, "stacks", []):
+        if isinstance(stack.qdevice_cfg, dict) and param in stack.qdevice_cfg:
+            return True
+    # Check in links
+    for link in getattr(cfg, "links", []):
+        if (
+            hasattr(link, "cfg")
+            and link.cfg is not None
+            and isinstance(link.cfg, dict)
+            and param in link.cfg
+        ):
+            return True
+    # Check in clinks
+    for clink in getattr(cfg, "clinks", []):
+        if (
+            hasattr(clink, "cfg")
+            and clink.cfg is not None
+            and isinstance(clink.cfg, dict)
+            and param in clink.cfg
+        ):
+            return True
+    return False
+
+
+def update_config(cfg: StackNetworkConfig, param: str, value: Any):
+    """Update the given parameter of the configuration.
+
+    Args:
+        cfg (StackNetworkConfig): Network configuration.
+        param (str): Name of the parameter.
+        value (Any): New value to assign to the parameter.
+    """
+    # Update in stacks
+    for stack in getattr(cfg, "stacks", []):
+        if isinstance(stack.qdevice_cfg, dict) and param in stack.qdevice_cfg:
+            stack.qdevice_cfg[param] = value
+    # Update in links
+    for link in getattr(cfg, "links", []):
+        if (
+            hasattr(link, "cfg")
+            and link.cfg is not None
+            and isinstance(link.cfg, dict)
+            and param in link.cfg
+        ):
+            link.cfg[param] = value
+    # Update in clinks
+    for clink in getattr(cfg, "clinks", []):
+        if (
+            hasattr(clink, "cfg")
+            and clink.cfg is not None
+            and isinstance(clink.cfg, dict)
+            and param in clink.cfg
+        ):
+            clink.cfg[param] = value
+
+
 # =============================================================================
 # Plotting Functions
 # =============================================================================
-def plot_heatmap(ax, df, p, q, metric, params, exp, epr_rounds):
-    """
-    Plot an individual heatmap on a given axes.
+def plot_heatmap(
+    ax,
+    df: pd.DataFrame,
+    p: str,
+    q: str,
+    metric: dict,
+    params: dict,
+    exp: str,
+    epr_rounds: int,
+):
+    """Plot an individual heatmap on a given axes.
 
     Args:
         ax: Matplotlib Axes object.
@@ -253,8 +322,7 @@ def plot_combined_heatmaps(
     epr_rounds: int,
     separate_files: bool = False,
 ):
-    """
-    Generates heatmaps from experiment results.
+    """Generates heatmaps from experiment results.
 
     If `separate_files` is True, two separate figures will be created:
     one for Average Fidelity and one for Average Simulation Time.
@@ -330,8 +398,7 @@ def plot_combined_heatmaps(
 def pingpong_initiator(
     qubit: Qubit, context: ProgramContext, peer_name: str, num_rounds: int = 3
 ):
-    """
-    Executes the ping‐pong teleportation protocol for the initiator.
+    """Executes the ping‐pong teleportation protocol for the initiator.
 
     In even rounds, the provided qubit is sent to the peer.
     In odd rounds, the initiator receives the qubit.
@@ -361,8 +428,7 @@ def pingpong_initiator(
 def pingpong_responder(
     context: ProgramContext, peer_name: str, num_rounds: int = 3
 ) -> Generator[None, None, Qubit]:
-    """
-    Executes the complementary ping‐pong teleportation protocol
+    """Executes the complementary ping‐pong teleportation protocol
     for the responder.
 
     The responder starts without a qubit and in the first (even) round

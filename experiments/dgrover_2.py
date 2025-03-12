@@ -38,18 +38,13 @@ from experiments.utils import (
 # Alice's Program for distributed Grover on 2 qubits
 # =============================================================================
 class AliceDGrover2(Program):
-    """
-    Implements Alice's side of distributed Grover on 2 qubits.
-
-    Args:
-        num_epr_rounds (int):  Number of EPR rounds.
+    """Implements Alice's side of distributed Grover on 2 qubits.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Alice's program with the given number of rounds.
+        """Initializes Alice's program with the given number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds.
@@ -58,8 +53,7 @@ class AliceDGrover2(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """
-        Defines metadata for Alice's distributed Grover program.
+        """Defines metadata for Alice's distributed Grover program.
 
         Returns:
             ProgramMeta: Experiment name, sockets, qubit limit.
@@ -72,8 +66,10 @@ class AliceDGrover2(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Alice's part of distributed Grover on 2 qubits.
+        """Executes Alice's part of distributed Grover on 2 qubits.
+
+        Args:
+            context (ProgramContext): Network and connection details.
         """
 
         for _ in range(self._num_epr_rounds):
@@ -107,18 +103,16 @@ class AliceDGrover2(Program):
 # Bob's Program for distributed Grover on 2 qubits
 # =============================================================================
 class BobDGrover2(Program):
-    """
-    Implements Bob's side of distributed Grover on 2 qubits.
-
-    Args:
-        num_epr_rounds (int): Number of EPR rounds.
+    """Implements Bob's side of distributed Grover on 2 qubits.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Bob's program with the given number of rounds.
+        """Initializes Bob's program with the given number of rounds.
+
+        Args:
+            num_epr_rounds (int):  Number of EPR rounds.
         """
         self._num_epr_rounds = num_epr_rounds
         self.fidelities: list[float] = []
@@ -126,8 +120,7 @@ class BobDGrover2(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """
-        Defines metadata for Bob's distributed Grover program.
+        """Defines metadata for Bob's distributed Grover program.
 
         Returns:
             ProgramMeta: Experiment name, sockets, qubit limit.
@@ -140,8 +133,10 @@ class BobDGrover2(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Bob's part of distributed Grover on 2 qubits.
+        """Executes Bob's part of distributed Grover on 2 qubits.
+
+        Args:
+            context (ProgramContext): Network and connection details.
 
         Returns:
             list[tuple[list[float], list[float]]]: A list of tuple containing

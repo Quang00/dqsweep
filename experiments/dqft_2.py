@@ -34,18 +34,13 @@ from experiments.utils import compute_fidelity
 # Alice's Program for DQFT2
 # =============================================================================
 class AliceDQFT2(Program):
-    """
-    Implements Alice's side of the distributed QFT experiment.
-
-    Args:
-        num_epr_rounds (int):  Number of EPR rounds.
+    """Implements Alice's side of the distributed QFT experiment.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Alice's program with the given number of rounds.
+        """Initializes Alice's program with the given number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds.
@@ -54,8 +49,7 @@ class AliceDQFT2(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """
-        Defines metadata for Alice's DQFT2 program.
+        """Defines metadata for Alice's DQFT2 program.
 
         Returns:
             ProgramMeta: Experiment name, sockets, qubit limit.
@@ -68,9 +62,10 @@ class AliceDQFT2(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Alice's part of the DQFT2.
+        """Executes Alice's part of the DQFT2.
 
+        Args:
+            context (ProgramContext): Network and connection details.
         """
         csocket = context.csockets[self.PEER_NAME]
         epr_socket = context.epr_sockets[self.PEER_NAME]
@@ -108,18 +103,16 @@ class AliceDQFT2(Program):
 # Bob's Program for DQFT2
 # =============================================================================
 class BobDQFT2(Program):
-    """
-    Implements Bob's side of the distributed QFT experiment.
-
-    Args:
-        num_epr_rounds (int): Number of EPR rounds.
+    """Implements Bob's side of the distributed QFT experiment.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Bob's program with the given number of rounds.
+        """Initializes Bob's program with the given number of rounds.
+
+        Args:
+            num_epr_rounds (int):  Number of EPR rounds.
         """
         self._num_epr_rounds = num_epr_rounds
         self.fidelities: list[float] = []
@@ -127,8 +120,7 @@ class BobDQFT2(Program):
 
     @property
     def meta(self) -> ProgramMeta:
-        """
-        Defines metadata for Bob's DQFT2 program.
+        """Defines metadata for Bob's DQFT2 program.
 
         Returns:
             ProgramMeta: Experiment name, sockets, qubit limit.
@@ -141,8 +133,10 @@ class BobDQFT2(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Bob's part of the DQFT2.
+        """Executes Bob's part of the DQFT2.
+
+        Args:
+            context (ProgramContext): Network and connection details.
 
         Returns:
             list[tuple[list[float], list[float]]]: A list of tuple containing

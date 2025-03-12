@@ -68,6 +68,8 @@ from experiments.utils import (
     metric_correlation,
     parse_range,
     plot_combined_heatmaps,
+    param_exists_in_config,
+    update_config
 )
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
@@ -85,8 +87,7 @@ def sweep_parameters(
     experiment: str,
     output_dir: str,
 ) -> pd.DataFrame:
-    """
-    Performs a parameter sweep, runs simulations, and stores results.
+    """Performs a parameter sweep, runs simulations, and stores results.
 
     Args:
         cfg (StackNetworkConfig): Network configuration.
@@ -99,8 +100,16 @@ def sweep_parameters(
 
     Returns:
         pd.DataFrame: Dataframe of results.
+
+    Raises:
+        ValueError: If any sweep parameter is not found in the configuration.
     """
     os.makedirs(output_dir, exist_ok=True)
+
+    # Validate that each sweep parameter exists in the configuration.
+    for param in sweep_params:
+        if not param_exists_in_config(cfg, param):
+            raise ValueError(f"Parameter '{param}' not found in config.")
 
     param_ranges = {
         param: parse_range(rng_str, param)
@@ -108,7 +117,7 @@ def sweep_parameters(
     }
 
     combinations = list(
-        itertools.product(*[param_ranges[name] for name in sweep_params])
+        itertools.product(*[param_ranges[param] for param in sweep_params])
     )
 
     results = []
@@ -121,11 +130,9 @@ def sweep_parameters(
     }.get(experiment, (AliceProgram, BobProgram))
 
     for comb in combinations:
+        # Update config for the current combination
         for param, value in zip(sweep_params, comb):
-            if hasattr(cfg.links[0], "cfg") and cfg.links[0].cfg is not None:
-                cfg.links[0].cfg[param] = value
-            else:
-                cfg.stacks[0].qdevice_cfg[param] = value
+            update_config(cfg, param, value)
 
         _, bob_results = run(
             config=cfg,
@@ -142,27 +149,21 @@ def sweep_parameters(
         avg_time = np.mean(all_time_results)
 
         results.append(
-            dict(
-                zip(sweep_params, comb),
-                **{
-                    "Fidelity Results": all_fid_results,
-                    "Simulation Time Results": all_time_results,
-                    "Average Fidelity (%)": avg_fid,
-                    "Average Simulation Time (ms)": avg_time,
-                },
-            )
+            {**dict(zip(sweep_params, comb)),
+             "Fidelity Results": all_fid_results,
+             "Simulation Time Results": all_time_results,
+             "Average Fidelity (%)": avg_fid,
+             "Average Simulation Time (ms)": avg_time}
         )
 
     df = pd.DataFrame(results)
-    df.to_csv(
-        os.path.join(output_dir, f"{experiment}_results.csv"), index=False
-    )
+    path = os.path.join(output_dir, f"{experiment}_results.csv")
+    df.to_csv(path)
     return df
 
 
 def main():
-    """
-    Main entry point for the Distributed Quantum Experiments Simulation Script.
+    """Main entry point for the Distributed Quantum Experiments Script.
 
     This function launches the simulation, starting from the parsing
     command-line arguments to generating performance plots (Heat maps),
@@ -176,7 +177,7 @@ def main():
         "--config",
         type=str,
         default="configurations/perfect.yaml",
-        help="Path to the configuration."
+        help="Path to the configuration.",
     )
     parser.add_argument(
         "--experiment",
@@ -185,10 +186,7 @@ def main():
         help="Distributed experiments (e.g., cnot, pingpong, dgrover2, ...).",
     )
     parser.add_argument(
-        "--epr_rounds",
-        type=int,
-        default=10,
-        help="Number of EPR rounds."
+        "--epr_rounds", type=int, default=10, help="Number of EPR rounds."
     )
     parser.add_argument(
         "--num_experiments",
@@ -210,15 +208,14 @@ def main():
         help="One range string per parameter (format: 'start,end,points').",
     )
     parser.add_argument(
-        "--output_dir",
-        type=str,
-        default="results",
-        help="Output directory"
+        "--output_dir", type=str, default="results", help="Output directory"
     )
     args = parser.parse_args()
 
     output_dir = create_subdir(
-        args.output_dir, args.experiment, args.sweep_params
+        args.output_dir,
+        args.experiment,
+        args.sweep_params
     )
     print(f"Using output directory: {output_dir}")
 

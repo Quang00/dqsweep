@@ -48,7 +48,7 @@ pytest
 
 The experiments are executed through the `run_simulation.py` script, which does the parameter sweeps, runs the given distributed quantum experiment, and produces the results in a folder containing different files. To run the simulation:
 
-1. **Configure Quantum Network:**
+1. **Configure A Quantum Network:**
 
    - (**`--config`**): Provide a valid quantum network configuration or use the ones already provided (e.g., `perfect.yaml`, `depolarise_link.yaml`) in the `configurations/` folder. The default configuration is `perfect.yaml`.
 

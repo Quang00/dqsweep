@@ -36,18 +36,13 @@ from experiments.utils import compute_fidelity
 # Alice's Program for Nonlocal CNOT Gate using two teleportations
 # =============================================================================
 class Alice2Teleportations(Program):
-    """
-    Implements Alice's side of the nonlocal CNOT gate.
-
-    Args:
-        num_epr_rounds (int): Number of EPR rounds.
+    """Implements Alice's side of the nonlocal CNOT gate.
     """
 
     PEER_NAME = "Bob"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Alice's program with the given number of rounds.
+        """Initializes Alice's program with the given number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds.
@@ -69,8 +64,7 @@ class Alice2Teleportations(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Alice's part.
+        """Executes Alice's part.
 
         Args:
             context (ProgramContext): Network and connection details.
@@ -111,18 +105,13 @@ class Alice2Teleportations(Program):
 # Bob's for Nonlocal CNOT Gate using two teleportations
 # =============================================================================
 class Bob2Teleportations(Program):
-    """
-    Implements Bob's side of the nonlocal CNOT gate.
-
-    Args:
-        num_epr_rounds (int): Number of EPR rounds.
+    """Implements Bob's side of the nonlocal CNOT gate.
     """
 
     PEER_NAME = "Alice"
 
     def __init__(self, num_epr_rounds: int):
-        """
-        Initializes Bob's program with the specified number of rounds.
+        """Initializes Bob's program with the specified number of rounds.
 
         Args:
             num_epr_rounds (int): Number of EPR rounds in the experiment.
@@ -147,8 +136,7 @@ class Bob2Teleportations(Program):
         )
 
     def run(self, context: ProgramContext):
-        """
-        Executes Bob's part.
+        """Executes Bob's part.
 
         Args:
             context (ProgramContext): Network and connection details.
