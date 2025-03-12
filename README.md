@@ -1,6 +1,6 @@
 # dqsweep
 
-![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/Quang00/dqsweep/badge.svg?branch=main)](https://coveralls.io/github/Quang00/dqsweep?branch=main)
+![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/Quang00/dqsweep/badge.svg?branch=main)](https://coveralls.io/github/Quang00/dqsweep?branch=main&kill_cache=1)
 
 This repository is designed to analyze the performance (fidelity and latency) of multiple distributed quantum experiments over a configurable quantum network. It uses quantum network simulators such as [NetSquid](https://netsquid.org/) and [SquidASM](https://github.com/QuTech-Delft/squidasm).
 
