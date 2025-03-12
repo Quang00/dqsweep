@@ -68,8 +68,7 @@ from experiments.utils import (
     metric_correlation,
     parse_range,
     plot_combined_heatmaps,
-    param_exists_in_config,
-    update_config
+    check_sweep_params_input
 )
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
@@ -82,7 +81,7 @@ def sweep_parameters(
     cfg: StackNetworkConfig,
     epr_rounds: int,
     num_experiments: int,
-    sweep_params: list,
+    sweep_params: str,
     ranges: list,
     experiment: str,
     output_dir: str,
@@ -93,35 +92,25 @@ def sweep_parameters(
         cfg (StackNetworkConfig): Network configuration.
         epr_rounds (int): Number of EPR rounds.
         num_experiments (int): Number of experiments per configuration.
-        sweep_params (list): Parameters to sweep.
+        sweep_params (str): Parameters to sweep.
         ranges (list): Ranges for each parameter.
         experiment (str): Experiment name.
         output_dir (str): Directory to save results.
 
     Returns:
         pd.DataFrame: Dataframe of results.
-
-    Raises:
-        ValueError: If any sweep parameter is not found in the configuration.
     """
     os.makedirs(output_dir, exist_ok=True)
-
-    # Validate that each sweep parameter exists in the configuration.
-    for param in sweep_params:
-        if not param_exists_in_config(cfg, param):
-            raise ValueError(f"Parameter '{param}' not found in config.")
 
     param_ranges = {
         param: parse_range(rng_str, param)
         for param, rng_str in zip(sweep_params, ranges)
     }
-
     combinations = list(
         itertools.product(*[param_ranges[param] for param in sweep_params])
     )
 
     results = []
-
     alice_cls, bob_cls = {
         "2_teleportations": (Alice2Teleportations, Bob2Teleportations),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
@@ -130,9 +119,13 @@ def sweep_parameters(
     }.get(experiment, (AliceProgram, BobProgram))
 
     for comb in combinations:
-        # Update config for the current combination
         for param, value in zip(sweep_params, comb):
-            update_config(cfg, param, value)
+            for link in cfg.links:
+                if getattr(link, "link_cfg", None) is not None:
+                    link.cfg[param] = value
+            for stack in cfg.stacks:
+                if getattr(stack, "qdevice_cfg", None) is not None:
+                    stack.qdevice_cfg[param] = value
 
         _, bob_results = run(
             config=cfg,
@@ -149,11 +142,13 @@ def sweep_parameters(
         avg_time = np.mean(all_time_results)
 
         results.append(
-            {**dict(zip(sweep_params, comb)),
-             "Fidelity Results": all_fid_results,
-             "Simulation Time Results": all_time_results,
-             "Average Fidelity (%)": avg_fid,
-             "Average Simulation Time (ms)": avg_time}
+            {
+                **dict(zip(sweep_params, comb)),
+                "Fidelity Results": all_fid_results,
+                "Simulation Time Results": all_time_results,
+                "Average Fidelity (%)": avg_fid,
+                "Average Simulation Time (ms)": avg_time,
+            }
         )
 
     df = pd.DataFrame(results)
@@ -220,6 +215,8 @@ def main():
     print(f"Using output directory: {output_dir}")
 
     cfg = StackNetworkConfig.from_file(args.config)
+
+    check_sweep_params_input(args.sweep_params, cfg)
 
     if args.sweep_params and args.ranges:
         # Ensure the number of parameters matches the number of ranges

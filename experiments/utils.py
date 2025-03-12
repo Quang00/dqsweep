@@ -1,6 +1,6 @@
 import itertools
 import os
-from typing import Any, Generator, Union
+from typing import Generator, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -188,71 +188,29 @@ def run_simulation(
     return results
 
 
-def param_exists_in_config(cfg: StackNetworkConfig, param: str) -> bool:
-    """Check if a given parameter exists in the configuration.
+def check_sweep_params_input(
+    sweep_params: str,
+    cfg: StackNetworkConfig
+) -> bool:
+    """Check that all sweep parameters are found in the configuration.
 
     Args:
+        sweep_params (str): Parameters to sweep.
         cfg (StackNetworkConfig): Network configuration.
-        param (str): Name of the parameter.
 
     Returns:
-        bool: True if the parameter exists in the config otherwise False.
+        bool: True if all sweep parameters are found.
+
+    Raises:
+        ValueError: If one or more sweep parameters are missing in the config.
     """
-    # Check in stacks
-    for stack in getattr(cfg, "stacks", []):
-        if isinstance(stack.qdevice_cfg, dict) and param in stack.qdevice_cfg:
-            return True
-    # Check in links
-    for link in getattr(cfg, "links", []):
-        if (
-            hasattr(link, "cfg")
-            and link.cfg is not None
-            and isinstance(link.cfg, dict)
-            and param in link.cfg
-        ):
-            return True
-    # Check in clinks
-    for clink in getattr(cfg, "clinks", []):
-        if (
-            hasattr(clink, "cfg")
-            and clink.cfg is not None
-            and isinstance(clink.cfg, dict)
-            and param in clink.cfg
-        ):
-            return True
-    return False
+    sweep_set = {param.strip() for param in sweep_params.split(",")}
+    cfg_set = {token.strip("',:") for token in str(cfg).split()}
 
-
-def update_config(cfg: StackNetworkConfig, param: str, value: Any):
-    """Update the given parameter of the configuration.
-
-    Args:
-        cfg (StackNetworkConfig): Network configuration.
-        param (str): Name of the parameter.
-        value (Any): New value to assign to the parameter.
-    """
-    # Update in stacks
-    for stack in getattr(cfg, "stacks", []):
-        if isinstance(stack.qdevice_cfg, dict) and param in stack.qdevice_cfg:
-            stack.qdevice_cfg[param] = value
-    # Update in links
-    for link in getattr(cfg, "links", []):
-        if (
-            hasattr(link, "cfg")
-            and link.cfg is not None
-            and isinstance(link.cfg, dict)
-            and param in link.cfg
-        ):
-            link.cfg[param] = value
-    # Update in clinks
-    for clink in getattr(cfg, "clinks", []):
-        if (
-            hasattr(clink, "cfg")
-            and clink.cfg is not None
-            and isinstance(clink.cfg, dict)
-            and param in clink.cfg
-        ):
-            clink.cfg[param] = value
+    missing = sweep_set - cfg_set
+    if missing:
+        raise ValueError("Please provide parameters that exist in the config.")
+    return True
 
 
 # =============================================================================
