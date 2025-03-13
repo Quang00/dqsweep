@@ -79,6 +79,7 @@ class TestCreateSubdir:
     def test_duplicate(self, tmp_path):
         """Test create_subdir when the experiment directory already exists.
         """
+
         directory = str(tmp_path / "results")
         experiment = "experiment"
         sweep_params = "Param"

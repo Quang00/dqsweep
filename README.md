@@ -91,7 +91,8 @@ python -m experiments.run_simulation \
   --epr_rounds 10 \
   --num_experiments 100 \
   --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
-  --ranges "0.0,0.8,10" "0.0,0.8,10"
+  --ranges "0.0,0.8,10" "0.0,0.8,10" \
+  --output_dir results
 ```
 
 ### Example Result (Heat map) from command 1: Nonlocal CNOT (Depolarization Sweep)
@@ -107,7 +108,8 @@ python -m experiments.run_simulation \
   --epr_rounds 10 \
   --num_experiments 100 \
   --sweep_params single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob \
-  --ranges "0.0,0.8,10" "0.0,0.8,10"
+  --ranges "0.0,0.8,10" "0.0,0.8,10" \
+  --output_dir results
 ```
 
 ### Example Result (Heat map) from command 2: Distributed Grover on 2 qubits (Depolarization Sweep)

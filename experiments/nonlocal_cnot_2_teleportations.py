@@ -167,9 +167,13 @@ class Bob2Teleportations(Program):
             if alice_measurement == "1":
                 b1_qubit.Z()
 
-            # Perform the distributed CNOT gate locally since Bob
-            # has now the state of Alice in his qubit b1.
+            # Perform the distributed CNOT gate locally since Bob has now the
+            # state of Alice in his qubit b1. And then swap the qubit with the
+            # equivalent set of gates (1 SWAP = 3 CNOT) so we can only use 2
+            # CNOT gates to optimize the circuit.
+            bob_qubit.cnot(b1_qubit)
             b1_qubit.cnot(bob_qubit)
+
             b1_qubit.measure()
             yield from connection.flush()
 
