@@ -473,9 +473,9 @@ def distributed_U_control(
     as intended.
 
     Args:
-        context: Context of the current program.
-        peer_name: Name of the peer.
-        ctrl_qubit: The control qubit.
+        context (ProgramContext): Context of the current program.
+        peer_name (str): Name of the peer.
+        ctrl_qubit (Qubit): The control qubit.
     """
     csocket = context.csockets[peer_name]
     epr_socket = context.epr_sockets[peer_name]
@@ -506,9 +506,11 @@ def distributed_U_target(
     as intended.
 
     Args:
-        context: Context of the current program.
-        peer_names: Name of the peer engaging.
-        target_qubit: The target qubit.
+        context (ProgramContext): Context of the current program.
+        peer_names (List[str]): Name of the peer engaging.
+        target_qubit (Qubit): The target qubit.
+        U (Callable[..., None]): The n-qubits gate U with this signature:
+        `U(control_qubit_1, control_qubit_2, ..., target_qubit)`.
     """
     connection = context.connection
 
