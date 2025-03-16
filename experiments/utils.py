@@ -1,6 +1,6 @@
 import itertools
 import os
-from typing import Generator, Union
+from typing import Callable, Generator, List, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -102,7 +102,9 @@ def parse_range(range_str: str, param_name: str) -> np.ndarray:
         raise ValueError("Invalid format. Use 'start,end,points'.") from None
 
 
-def compute_fidelity(qubit: Qubit, owner: str, dm_state: np.ndarray) -> float:
+def compute_fidelity(
+    qubit: Qubit, owner: str, dm_state: np.ndarray, full_state: bool = True
+) -> float:
     """Computes the fidelity between the density matrix of a given qubit and
     the density matrix constructed from a reference state vector.
 
@@ -110,11 +112,12 @@ def compute_fidelity(qubit: Qubit, owner: str, dm_state: np.ndarray) -> float:
         qubit (Qubit): The qubit whose state is to be evaluated.
         owner (str): The owner of the qubit.
         dm_state (np.ndarray): The reference state vector.
+        full_state (bool): Flag to retrieve the full entangled state.
 
     Returns:
         float: The fidelity between the two density matrices.
     """
-    dm = get_qubit_state(qubit, owner, full_state=True)
+    dm = get_qubit_state(qubit, owner, full_state=full_state)
     dm_ref = np.outer(dm_state, np.conjugate(dm_state))
     fidelity = dm_fidelity(dm, dm_ref, dm_check=False)
 
@@ -154,8 +157,7 @@ def run_simulation(
     config: str,
     epr_rounds: int = 10,
     num_times: int = 10,
-    alice_cls=None,
-    bob_cls=None,
+    classes: dict = None,
 ):
     """Runs a simulation with the given configuration and program classes.
 
@@ -163,39 +165,37 @@ def run_simulation(
         config (str): Path to the network configuration YAML file.
         epr_rounds (int): Number of EPR rounds to execute in the simulation.
         num_times (int): Number of simulation repetitions.
-        alice_cls (type): The class implementing Alice's program.
-        bob_cls (type): The class implementing Bob's program.
+        classes (dict): A dictionary mapping program names to their classes.
 
     Returns:
         dict: A dictionary containing simulation results for each node.
     """
-    if alice_cls is None or bob_cls is None:
-        raise ValueError("Alice class and Bob class must be provided.")
+    if classes is None or not classes:
+        raise ValueError("At least one class must be provided.")
 
     # Load the network configuration.
     cfg = StackNetworkConfig.from_file(config)
 
-    alice_program = alice_cls(num_epr_rounds=epr_rounds)
-    bob_program = bob_cls(num_epr_rounds=epr_rounds)
+    # Instantiate all program classes.
+    programs = {
+        name: cls(num_epr_rounds=epr_rounds) for name, cls in classes.items()
+    }
 
     # Run the simulation with the provided configuration.
     results = run(
         config=cfg,
-        programs={"Alice": alice_program, "Bob": bob_program},
+        programs=programs,
         num_times=num_times,
     )
 
     return results
 
 
-def check_sweep_params_input(
-    sweep_params: str,
-    cfg: StackNetworkConfig
-) -> bool:
+def check_sweep_params_input(params: str, cfg: StackNetworkConfig) -> bool:
     """Check that all sweep parameters are found in the configuration.
 
     Args:
-        sweep_params (str): Parameters to sweep.
+        params (str): Parameters to sweep.
         cfg (StackNetworkConfig): Network configuration.
 
     Returns:
@@ -204,7 +204,7 @@ def check_sweep_params_input(
     Raises:
         ValueError: If one or more sweep parameters are missing in the config.
     """
-    sweep_set = {param.strip() for param in sweep_params.split(",")}
+    sweep_set = {param.strip() for param in params.split(",")}
     cfg_set = {token.strip("',:") for token in str(cfg).split()}
 
     missing = sweep_set - cfg_set
@@ -277,7 +277,7 @@ def plot_combined_heatmaps(
     params: dict,
     output_dir: str,
     exp: str,
-    epr_rounds: int,
+    rounds: int,
     separate_files: bool = False,
 ):
     """Generates heatmaps from experiment results.
@@ -292,7 +292,7 @@ def plot_combined_heatmaps(
         params (dict): Dictionary mapping parameters to their ranges.
         output_dir (str): Directory to save the generated figures.
         exp (str): Name of the experiment.
-        epr_rounds (int): Number of epr rounds.
+        rounds (int): Number of epr rounds.
         separate_files (bool, optional): If True, save in a separate file.
     """
     pairs = list(itertools.combinations(sweep_params, 2))
@@ -319,10 +319,10 @@ def plot_combined_heatmaps(
                 axes = [axes]
 
             for ax, (p, q) in zip(axes, pairs):
-                plot_heatmap(ax, df, p, q, metric, params, exp, epr_rounds)
+                plot_heatmap(ax, df, p, q, metric, params, exp, rounds)
 
             plt.tight_layout()
-            suffix = f"{(epr_rounds + 1) // 2}" if exp == "pingpong" else ""
+            suffix = f"{(rounds + 1) // 2}" if exp == "pingpong" else ""
             filename = os.path.join(
                 output_dir, f"{exp}_heat_{metric['file_label']}_{suffix}.png"
             )
@@ -339,15 +339,58 @@ def plot_combined_heatmaps(
 
         for i, metric in enumerate(metrics):
             for j, (p, q) in enumerate(pairs):
-                plot_heatmap(
-                    axes[i, j], df, p, q, metric, params, exp, epr_rounds
-                )
+                plot_heatmap(axes[i, j], df, p, q, metric, params, exp, rounds)
 
         plt.tight_layout()
         filename = os.path.join(output_dir, f"{exp}_heatmaps.png")
         plt.savefig(filename, dpi=300)
         plt.close(fig)
         print(f"Saved combined heatmaps to {filename}")
+
+
+# =============================================================================
+# Gates
+# =============================================================================
+def toffoli(control1: Qubit, control2: Qubit, target: Qubit) -> None:
+    """Performs a Toffoli gate with `control1` and `control2` as control qubits
+    and `target` as target, using CNOTS, Ts and Hadamard gates.
+
+    See https://en.wikipedia.org/wiki/Toffoli_gate
+
+    Args:
+        control1 (Qubit): First control qubit.
+        control2 (Qubit): Second control qubit.
+        target (Qubit): Target qubit.
+    """
+    target.H()
+    control2.cnot(target)
+    target.rot_Z(angle=-np.pi / 4)
+    control1.cnot(target)
+    target.rot_Z(angle=np.pi / 4)
+    control2.cnot(target)
+    target.rot_Z(angle=-np.pi / 4)
+    control1.cnot(target)
+    control2.rot_Z(angle=np.pi / 4)
+    target.rot_Z(angle=np.pi / 4)
+    target.H()
+    control1.cnot(control2)
+    control1.rot_Z(angle=np.pi / 4)
+    control2.rot_Z(angle=-np.pi / 4)
+    control1.cnot(control2)
+
+
+def CCZ(control1: Qubit, control2: Qubit, target: Qubit) -> None:
+    """Performs a CCZ gate with `control1` and `control2` as control qubits
+    and `target` as target, using Toffoli and Hadamard gates.
+
+    Args:
+        control1 (Qubit): First control qubit.
+        control2 (Qubit): Second control qubit.
+        target (Qubit): Target qubit.
+    """
+    target.H()
+    toffoli(control1, control2, target)
+    target.H()
 
 
 # =============================================================================
@@ -419,3 +462,74 @@ def pingpong_responder(
     yield from context.connection.flush()
 
     return qubit
+
+
+def distributed_U_control(
+    context: ProgramContext, peer_name: str, ctrl_qubit: Qubit
+) -> Generator[None, None, None]:
+    """Performs the n-qubits U gate, but with one control qubit
+    located on this node, the target on a remote node. The formal return is a
+    generator and requires use of `yield from` in usage in order to function
+    as intended.
+
+    Args:
+        context: Context of the current program.
+        peer_name: Name of the peer.
+        ctrl_qubit: The control qubit.
+    """
+    csocket = context.csockets[peer_name]
+    epr_socket = context.epr_sockets[peer_name]
+    connection = context.connection
+
+    epr = epr_socket.create_keep()[0]
+    ctrl_qubit.cnot(epr)
+    epr_meas = epr.measure()
+    yield from connection.flush()
+
+    csocket.send(str(epr_meas))
+    target_meas = yield from csocket.recv()
+    if target_meas == "1":
+        ctrl_qubit.Z()
+
+    yield from connection.flush()
+
+
+def distributed_U_target(
+    context: ProgramContext,
+    peer_names: List[str],
+    target_qubit: Qubit,
+    U: Callable[..., None],
+):
+    """Performs the n-qubits U gate, but with the target qubit
+    located on this node, the controls on remote nodes. The formal return is
+    a generator and requires use of `yield from` in usage in order to function
+    as intended.
+
+    Args:
+        context: Context of the current program.
+        peer_names: Name of the peer engaging.
+        target_qubit: The target qubit.
+    """
+    connection = context.connection
+
+    epr_dict = {}
+    for peer_name in peer_names:
+        epr_dict[peer_name] = context.epr_sockets[peer_name].recv_keep()[0]
+    yield from connection.flush()
+
+    for peer_name, epr in epr_dict.items():
+        m = yield from context.csockets[peer_name].recv()
+        if m == "1":
+            epr.X()
+
+    epr_list = [epr_dict[peer_name] for peer_name in peer_names]
+    U(*epr_list, target_qubit)
+
+    epr_meas = {}
+    for peer_name, epr in epr_dict.items():
+        epr.H()
+        epr_meas[peer_name] = epr.measure()
+    yield from connection.flush()
+
+    for peer_name in peer_names:
+        context.csockets[peer_name].send(str(epr_meas[peer_name]))

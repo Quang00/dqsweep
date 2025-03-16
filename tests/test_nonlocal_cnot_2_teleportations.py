@@ -19,8 +19,10 @@ def test_alice_ket_1_bob_ket_0():
         config="configurations/perfect.yaml",
         epr_rounds=10,
         num_times=10,
-        alice_cls=Alice2Teleportations,
-        bob_cls=Bob2Teleportations,
+        classes={
+            "Alice": Alice2Teleportations,
+            "Bob": Bob2Teleportations,
+        }
     )
 
     # Compute the average fidelity.

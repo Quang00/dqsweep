@@ -1,6 +1,7 @@
 # dqsweep
 
-![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/Quang00/dqsweep/badge.svg?branch=main&kill_cache=1)](https://coveralls.io/github/Quang00/dqsweep?branch=main&kill_cache=1)
+![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg)
+[![Coverage Status](https://img.shields.io/coveralls/Quang00/dqsweep.svg?logo=Coveralls)](https://coveralls.io/r/Quang00/dqsweep)
 
 This repository is designed to analyze the performance (fidelity and latency) of multiple distributed quantum experiments over a configurable quantum network. It uses quantum network simulators such as [NetSquid](https://netsquid.org/) and [SquidASM](https://github.com/QuTech-Delft/squidasm).
 
@@ -15,6 +16,7 @@ The experiments implemented in this repository include:
 
 - **Nonlocal CNOT Gate (`nonlocal_cnot.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
 - **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_2_teleportations.py`):** Another implementation of the distributed CNOT gate using two quantum teleportations.
+- **Nonlocal Toffoli Gate (`nonlocal_toffoli.py`)**: Implementation of a distributed Toffoli gate between Alice, Bob and Charlie.
 - **Ping-Pong Teleportation (`pingpong.py`):** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits (`dqft_2.py`):** Implementation of a distributed QFT on two qubits.
 - **Distributed Grover on Two Qubits (`dgrover_2.py`):** Implementation of a distributed Grover on two qubits.
@@ -78,6 +80,7 @@ The provied experiments:
 
 - **`cnot`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
 - **`2_teleportations`**: Nonlocal CNOT gate using two teleportations.
+- **`toffoli`**: Nonlocal Toffoli gate using two ebits and four bits in each direction.
 - **`pingpong`**: Ping-pong quantum teleportation between Alice and Bob.
 - **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.
 - **`dgrover2`**: Distributed Grover on 2 qubits.

@@ -51,6 +51,4 @@ def test_basic_perfect_config(tmp_path):
         "Average Simulation Time (ms)",
     ]
 
-    np.testing.assert_array_equal(
-        np.sort(df.columns), np.sort(expected_columns)
-    )
+    np.testing.assert_array_equal(df.columns, expected_columns)

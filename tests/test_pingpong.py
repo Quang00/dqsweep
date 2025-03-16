@@ -22,8 +22,10 @@ def test_various_hops(epr_rounds):
         config="configurations/perfect.yaml",
         epr_rounds=epr_rounds,
         num_times=10,
-        alice_cls=AlicePingpongTeleportation,
-        bob_cls=BobPingpongTeleportation,
+        classes={
+            "Alice": AlicePingpongTeleportation,
+            "Bob": BobPingpongTeleportation,
+        }
     )
 
     # Compute the average fidelity across experiments.
@@ -55,6 +57,8 @@ def test_even_hops(epr_rounds):
             config="configurations/perfect.yaml",
             epr_rounds=epr_rounds,
             num_times=10,
-            alice_cls=AlicePingpongTeleportation,
-            bob_cls=BobPingpongTeleportation,
+            classes={
+                "Alice": AlicePingpongTeleportation,
+                "Bob": BobPingpongTeleportation,
+            }
         )

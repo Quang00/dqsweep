@@ -59,16 +59,21 @@ from experiments.nonlocal_cnot_2_teleportations import (
     Alice2Teleportations,
     Bob2Teleportations,
 )
+from experiments.nonlocal_toffoli import (
+    AliceToffoli,
+    BobToffoli,
+    CharlieToffoli
+)
 from experiments.pingpong import (
     AlicePingpongTeleportation,
     BobPingpongTeleportation
 )
 from experiments.utils import (
+    check_sweep_params_input,
     create_subdir,
     metric_correlation,
     parse_range,
     plot_combined_heatmaps,
-    check_sweep_params_input
 )
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
@@ -110,15 +115,19 @@ def sweep_parameters(
         itertools.product(*[param_ranges[param] for param in sweep_params])
     )
 
-    results = []
-    alice_cls, bob_cls = {
+    # Map experiments to their program classes.
+    exp_dic = {
         "2_teleportations": (Alice2Teleportations, Bob2Teleportations),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
         "dqft2": (AliceDQFT2, BobDQFT2),
         "dgrover2": (AliceDGrover2, BobDGrover2),
-    }.get(experiment, (AliceProgram, BobProgram))
+        "toffoli": (AliceToffoli, BobToffoli, CharlieToffoli),
+    }
+    classes = exp_dic.get(experiment, (AliceProgram, BobProgram))
 
+    results = []
     for comb in combinations:
+        # Update network configuration for each parameter.
         for param, value in zip(sweep_params, comb):
             for link in cfg.links:
                 if getattr(link, "link_cfg", None) is not None:
@@ -127,16 +136,31 @@ def sweep_parameters(
                 if getattr(stack, "qdevice_cfg", None) is not None:
                     stack.qdevice_cfg[param] = value
 
-        _, bob_results = run(
-            config=cfg,
-            programs={
-                "Alice": alice_cls(num_epr_rounds=epr_rounds),
-                "Bob": bob_cls(num_epr_rounds=epr_rounds),
-            },
-            num_times=num_experiments,
-        )
-        all_fid_results = [res[0] for res in bob_results]
-        all_time_results = [res[1] for res in bob_results]
+        if experiment == "toffoli":
+            programs = {
+                "Alice": classes[0](num_epr_rounds=epr_rounds),
+                "Bob": classes[1](num_epr_rounds=epr_rounds),
+                "Charlie": classes[2](num_epr_rounds=epr_rounds),
+            }
+            # For toffoli, run() returns three values.
+            _, _, res = run(
+                config=cfg,
+                programs=programs,
+                num_times=num_experiments,
+            )
+        else:
+            programs = {
+                "Alice": classes[0](num_epr_rounds=epr_rounds),
+                "Bob": classes[1](num_epr_rounds=epr_rounds),
+            }
+            _, res = run(
+                config=cfg,
+                programs=programs,
+                num_times=num_experiments,
+            )
+
+        all_fid_results = [r[0] for r in res]
+        all_time_results = [r[1] for r in res]
 
         avg_fid = np.mean(all_fid_results) * 100
         avg_time = np.mean(all_time_results)

@@ -16,8 +16,10 @@ def test_alice_ket_0_bob_ket_0():
         config="configurations/perfect.yaml",
         epr_rounds=10,
         num_times=10,
-        alice_cls=AliceDGrover2,
-        bob_cls=BobDGrover2,
+        classes={
+            "Alice": AliceDGrover2,
+            "Bob": BobDGrover2,
+        }
     )
 
     # Compute the average fidelity.
