@@ -379,7 +379,7 @@ def toffoli(control1: Qubit, control2: Qubit, target: Qubit) -> None:
     control1.cnot(control2)
 
 
-def CCZ(control1: Qubit, control2: Qubit, target: Qubit) -> None:
+def ccz(control1: Qubit, control2: Qubit, target: Qubit) -> None:
     """Performs a CCZ gate with `control1` and `control2` as control qubits
     and `target` as target, using Toffoli and Hadamard gates.
 

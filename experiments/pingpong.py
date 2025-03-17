@@ -26,9 +26,9 @@ from experiments.utils import pingpong_initiator, pingpong_responder
 # =============================================================================
 # Initialize a random qubit state
 # =============================================================================
-PHI = np.random.random() * np.pi
-THETA = np.random.random() * np.pi
-
+rng = np.random.default_rng(42)
+PHI = rng.random() * np.pi
+THETA = rng.random() * np.pi
 
 # =============================================================================
 # Alice's Ping-Pong Teleportation Program
