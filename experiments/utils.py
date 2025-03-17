@@ -464,10 +464,10 @@ def pingpong_responder(
     return qubit
 
 
-def distributed_U_control(
+def distributed_n_qubit_controlled_u_control(
     context: ProgramContext, peer_name: str, ctrl_qubit: Qubit
 ) -> Generator[None, None, None]:
-    """Performs the n-qubits U gate, but with one control qubit
+    """Performs the n-qubit controlled-U gate, but with one control qubit
     located on this node, the target on a remote node. The formal return is a
     generator and requires use of `yield from` in usage in order to function
     as intended.
@@ -494,13 +494,13 @@ def distributed_U_control(
     yield from connection.flush()
 
 
-def distributed_U_target(
+def distributed_n_qubit_controlled_u_target(
     context: ProgramContext,
     peer_names: List[str],
     target_qubit: Qubit,
-    U: Callable[..., None],
+    controlled_u: Callable[..., None],
 ):
-    """Performs the n-qubits U gate, but with the target qubit
+    """Performs the n-qubit controlled-U gate, but with the target qubit
     located on this node, the controls on remote nodes. The formal return is
     a generator and requires use of `yield from` in usage in order to function
     as intended.
@@ -509,7 +509,7 @@ def distributed_U_target(
         context (ProgramContext): Context of the current program.
         peer_names (List[str]): Name of the peer engaging.
         target_qubit (Qubit): The target qubit.
-        U (Callable[..., None]): The n-qubits gate U with this signature:
+        controlled_u (Callable[..., None]): The n-qubits gate U with this signature:
         `U(control_qubit_1, control_qubit_2, ..., target_qubit)`.
     """
     connection = context.connection
@@ -525,7 +525,7 @@ def distributed_U_target(
             epr.X()
 
     epr_list = [epr_dict[peer_name] for peer_name in peer_names]
-    U(*epr_list, target_qubit)
+    controlled_u(*epr_list, target_qubit)
 
     epr_meas = {}
     for peer_name, epr in epr_dict.items():

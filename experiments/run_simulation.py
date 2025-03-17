@@ -86,7 +86,7 @@ def sweep_parameters(
     cfg: StackNetworkConfig,
     epr_rounds: int,
     num_experiments: int,
-    sweep_params: str,
+    sweep_params: list,
     ranges: list,
     experiment: str,
     output_dir: str,
@@ -97,7 +97,7 @@ def sweep_parameters(
         cfg (StackNetworkConfig): Network configuration.
         epr_rounds (int): Number of EPR rounds.
         num_experiments (int): Number of experiments per configuration.
-        sweep_params (str): Parameters to sweep.
+        sweep_params (list): Parameters to sweep.
         ranges (list): Ranges for each parameter.
         experiment (str): Experiment name.
         output_dir (str): Directory to save results.
