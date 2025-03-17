@@ -21,7 +21,7 @@ from experiments.utils import (
     compute_fidelity,
     distributed_n_qubit_controlled_u_control,
     distributed_n_qubit_controlled_u_target,
-    toffoli
+    toffoli,
 )
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 
@@ -52,7 +52,9 @@ class AliceToffoli(Program):
         for _ in range(self._num_epr_rounds):
             a_q = Qubit(connection)
             a_q.X()
-            yield from distributed_n_qubit_controlled_u_control(context, self.PEER_NAME, a_q)
+            yield from distributed_n_qubit_controlled_u_control(
+                context, self.PEER_NAME, a_q
+            )
             a_q.measure()
             yield from connection.flush()
 
@@ -85,7 +87,9 @@ class BobToffoli(Program):
         for _ in range(self._num_epr_rounds):
             b_q = Qubit(connection)
             b_q.X()
-            yield from distributed_n_qubit_controlled_u_control(context, self.PEER_NAME, b_q)
+            yield from distributed_n_qubit_controlled_u_control(
+                context, self.PEER_NAME, b_q
+            )
             b_q.measure()
             yield from connection.flush()
 
@@ -118,7 +122,9 @@ class CharlieToffoli(Program):
 
         for _ in range(self._num_epr_rounds):
             c_q = Qubit(context.connection)
-            yield from distributed_n_qubit_controlled_u_target(context, self.PEERS, c_q, toffoli)
+            yield from distributed_n_qubit_controlled_u_target(
+                context, self.PEERS, c_q, toffoli
+            )
             yield from connection.flush()
 
             state_ref = np.array([0, 1], dtype=complex)

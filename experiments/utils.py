@@ -509,8 +509,8 @@ def distributed_n_qubit_controlled_u_target(
         context (ProgramContext): Context of the current program.
         peer_names (List[str]): Name of the peer engaging.
         target_qubit (Qubit): The target qubit.
-        controlled_u (Callable[..., None]): The n-qubits gate U with this signature:
-        `U(control_qubit_1, control_qubit_2, ..., target_qubit)`.
+        controlled_u (Callable[..., None]): The n-qubits gate U with this
+        signature `U(control_qubit_1, control_qubit_2, ..., target_qubit)`.
     """
     connection = context.connection
 
