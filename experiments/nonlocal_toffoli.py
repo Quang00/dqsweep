@@ -115,8 +115,8 @@ class CharlieToffoli(Program):
     def run(self, context: ProgramContext):
         connection = context.connection
 
-        fidelities: list[float] = []
-        simulation_times: list[float] = []
+        fidelities = []
+        simulation_times = []
 
         for _ in range(self._num_epr_rounds):
             c_q = Qubit(context.connection)

@@ -113,8 +113,8 @@ class BobDQFT2(Program):
             num_epr_rounds (int):  Number of EPR rounds.
         """
         self._num_epr_rounds = num_epr_rounds
-        self.fidelities: list[float] = []
-        self.simulation_times: list[float] = []
+        self.fidelities = []
+        self.simulation_times = []
 
     @property
     def meta(self) -> ProgramMeta:

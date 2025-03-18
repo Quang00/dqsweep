@@ -140,8 +140,8 @@ class BobProgram(Program):
         epr_socket: EPRSocket = context.epr_sockets[self.PEER_NAME]
         connection: BaseNetQASMConnection = context.connection
 
-        fidelities: list[float] = []
-        simulation_times: list[float] = []
+        fidelities = []
+        simulation_times = []
 
         for _ in range(self._num_epr_rounds):
             # Receive the EPR pair
