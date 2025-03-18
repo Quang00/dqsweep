@@ -3,7 +3,13 @@ import os
 import numpy as np
 import pytest
 
-from experiments.utils import create_subdir, parse_range, truncate_param
+from experiments.utils import (
+    check_sweep_params_input,
+    create_subdir,
+    parse_range,
+    truncate_param,
+)
+from squidasm.run.stack.config import StackNetworkConfig
 
 
 class TestTruncateParam:
@@ -58,9 +64,9 @@ class TestParseRange:
         """Test base case range linear space."""
 
         parse_range.__globals__["LOG_SCALE_PARAMS"] = []
-        range = "0,10,5"
+        ranges = "0,10,5"
         param = "single_qubit_gate_depolar_prob"
-        result = parse_range(range, param)
+        result = parse_range(ranges, param)
         expected = np.linspace(0, 10, 5)
         np.testing.assert_allclose(result, expected)
 
@@ -68,17 +74,16 @@ class TestParseRange:
         """Test base case range log space."""
 
         parse_range.__globals__["LOG_SCALE_PARAMS"] = ["T1"]
-        range = "0,2,5"
+        ranges = "0,2,5"
         param = "T1"
-        result = parse_range(range, param)
+        result = parse_range(ranges, param)
         expected = np.logspace(0, 2, 5)
         np.testing.assert_allclose(result, expected)
 
 
 class TestCreateSubdir:
     def test_duplicate(self, tmp_path):
-        """Test create_subdir when the experiment directory already exists.
-        """
+        """Test create_subdir when the experiment directory already exists."""
 
         directory = str(tmp_path / "results")
         experiment = "experiment"
@@ -93,3 +98,23 @@ class TestCreateSubdir:
         expected_second = f"{expected_dir}_1"
         np.testing.assert_equal(second_subdir, expected_second)
         np.testing.assert_equal(os.path.exists(second_subdir), True)
+
+
+class TestCheckSweepParamsInput:
+    def test_valid(self):
+        """Test with valid input."""
+
+        cfg = StackNetworkConfig.from_file("configurations/perfect.yaml")
+        sweep_params = "T1,T2"
+        np.testing.assert_equal(
+            check_sweep_params_input(cfg, sweep_params),
+            True
+        )
+
+    def test_invalid(self):
+        """Test with invalid input."""
+
+        cfg = StackNetworkConfig.from_file("configurations/perfect.yaml")
+        sweep_params = "T1,T2,don't exist"
+        with pytest.raises(ValueError):
+            check_sweep_params_input(cfg, sweep_params)

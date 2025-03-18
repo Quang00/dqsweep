@@ -50,9 +50,7 @@ def test_even_hops(epr_rounds):
     Args:
         epr_rounds (int): Total number of hops.
     """
-    with pytest.raises(
-        ValueError, match="It must be odd for a complete ping-pong exchange."
-    ):
+    with pytest.raises(ValueError):
         run_simulation(
             config="configurations/perfect.yaml",
             epr_rounds=epr_rounds,

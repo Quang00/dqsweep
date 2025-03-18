@@ -209,7 +209,7 @@ def main():
 
     cfg = StackNetworkConfig.from_file(args.config)
 
-    check_sweep_params_input(args.sweep_params, cfg)
+    check_sweep_params_input(cfg, args.sweep_params)
 
     if args.sweep_params and args.ranges:
         # Ensure the number of parameters matches the number of ranges

@@ -192,12 +192,12 @@ def run_simulation(
     return results
 
 
-def check_sweep_params_input(params: str, cfg: StackNetworkConfig) -> bool:
+def check_sweep_params_input(cfg: StackNetworkConfig, params: str) -> bool:
     """Check that all sweep parameters are found in the configuration.
 
     Args:
-        params (str): Parameters to sweep.
         cfg (StackNetworkConfig): Network configuration.
+        params (str): Parameters to sweep.
 
     Returns:
         bool: True if all sweep parameters are found.
@@ -215,8 +215,7 @@ def check_sweep_params_input(params: str, cfg: StackNetworkConfig) -> bool:
 
 
 def update_cfg(cfg: StackNetworkConfig, map_param: dict) -> None:
-    """
-    Update the configuration for every link and stack with the
+    """Update the configuration for every link and stack with the
     given parameter values.
 
     Args:
