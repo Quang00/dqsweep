@@ -48,8 +48,9 @@ Run the script with the following command-line arguments:
 import argparse
 import itertools
 import os
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
 
-import numpy as np
 import pandas as pd
 
 from experiments.dgrover_2 import AliceDGrover2, BobDGrover2
@@ -72,12 +73,11 @@ from experiments.utils import (
     check_sweep_params_input,
     create_subdir,
     metric_correlation,
+    parallelize_comb,
     parse_range,
     plot_combined_heatmaps,
-    update_cfg,
 )
 from squidasm.run.stack.config import StackNetworkConfig
-from squidasm.run.stack.run import run
 
 
 # =============================================================================
@@ -104,7 +104,7 @@ def sweep_parameters(
         output_dir (str): Directory to save results.
 
     Returns:
-        pd.DataFrame: Dataframe of results.
+        pd.DataFrame: DataFrame of results.
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -132,31 +132,17 @@ def sweep_parameters(
         name: cls(num_epr_rounds=rounds) for name, cls in zip(names, classes)
     }
 
-    results = []
-    for comb in comb_list:
-        # Map parameter to value.
-        map_param = dict(zip(sweep_params, comb))
-        # Update the configuration with the combination.
-        update_cfg(cfg, map_param)
+    func = partial(
+        parallelize_comb,
+        cfg=cfg,
+        sweep_params=sweep_params,
+        num_experiments=num_experiments,
+        programs=programs,
+    )
 
-        res = run(config=cfg, programs=programs, num_times=num_experiments)
-
-        last_program_results = res[len(programs) - 1]
-        all_fid_results = [r[0] for r in last_program_results]
-        all_time_results = [r[1] for r in last_program_results]
-
-        avg_fid = np.mean(all_fid_results) * 100
-        avg_time = np.mean(all_time_results)
-
-        results.append(
-            {
-                **map_param,
-                "Fidelity Results": all_fid_results,
-                "Simulation Time Results": all_time_results,
-                "Average Fidelity (%)": avg_fid,
-                "Average Simulation Time (ms)": avg_time,
-            }
-        )
+    # Use ProcessPoolExecutor to parallelize the combinations.
+    with ProcessPoolExecutor() as executor:
+        results = list(executor.map(func, comb_list))
 
     df = pd.DataFrame(results)
     csv_path = os.path.join(output_dir, f"{experiment}_results.csv")

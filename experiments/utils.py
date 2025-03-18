@@ -1,3 +1,4 @@
+import copy
 import itertools
 import os
 from typing import Callable, Generator, List, Union
@@ -229,6 +230,43 @@ def update_cfg(cfg: StackNetworkConfig, map_param: dict) -> None:
         for stack in cfg.stacks:
             if getattr(stack, "qdevice_cfg", None) is not None:
                 stack.qdevice_cfg[param] = value
+
+
+def parallelize_comb(comb, cfg, sweep_params, num_experiments, programs):
+    """Parallelize a single combination of parameters
+
+    Args:
+        comb (tuple): One combination of parameters value.
+        cfg (StackNetworkConfig): Network configuration.
+        sweep_params (list): Parameters to sweep.
+        num_experiments (int): Number of experiments per configuration.
+        programs (dict): Progam that map a name to class.
+
+    Returns:
+        dict: A dictionary with the parameter mapping and computed results.
+    """
+    # Map parameter name to value.
+    map_param = dict(zip(sweep_params, comb))
+
+    local_cfg = copy.deepcopy(cfg)
+    update_cfg(local_cfg, map_param)
+
+    res = run(config=local_cfg, programs=programs, num_times=num_experiments)
+    last_program_results = res[len(programs) - 1]
+
+    all_fid_results = [r[0] for r in last_program_results]
+    all_time_results = [r[1] for r in last_program_results]
+
+    avg_fid = np.mean(all_fid_results) * 100
+    avg_time = np.mean(all_time_results)
+
+    return {
+        **map_param,
+        "Fidelity Results": all_fid_results,
+        "Simulation Time Results": all_time_results,
+        "Average Fidelity (%)": avg_fid,
+        "Average Simulation Time (ms)": avg_time,
+    }
 
 
 # =============================================================================
