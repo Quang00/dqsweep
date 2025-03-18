@@ -98,8 +98,6 @@ class Alice2Teleportations(Program):
             qubit.measure()
             yield from connection.flush()
 
-        return {}
-
 
 # =============================================================================
 # Bob's for Nonlocal CNOT Gate using two teleportations

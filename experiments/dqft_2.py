@@ -96,8 +96,6 @@ class AliceDQFT2(Program):
             alice_qubit.free()
             yield from connection.flush()
 
-        return {}
-
 
 # =============================================================================
 # Bob's Program for DQFT2

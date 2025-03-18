@@ -24,7 +24,7 @@ def test_basic_perfect_config(tmp_path):
     # Execute the parameter sweep.
     df = sweep_parameters(
         cfg=cfg,
-        epr_rounds=10,
+        rounds=10,
         num_experiments=10,
         sweep_params=sweep_params,
         ranges=ranges,

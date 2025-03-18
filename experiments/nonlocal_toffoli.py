@@ -58,8 +58,6 @@ class AliceToffoli(Program):
             a_q.measure()
             yield from connection.flush()
 
-        return {}
-
 
 class BobToffoli(Program):
     PEER_NAME = "Charlie"

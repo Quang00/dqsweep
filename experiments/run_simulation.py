@@ -74,6 +74,7 @@ from experiments.utils import (
     metric_correlation,
     parse_range,
     plot_combined_heatmaps,
+    update_cfg,
 )
 from squidasm.run.stack.config import StackNetworkConfig
 from squidasm.run.stack.run import run
@@ -84,7 +85,7 @@ from squidasm.run.stack.run import run
 # =============================================================================
 def sweep_parameters(
     cfg: StackNetworkConfig,
-    epr_rounds: int,
+    rounds: int,
     num_experiments: int,
     sweep_params: list,
     ranges: list,
@@ -95,7 +96,7 @@ def sweep_parameters(
 
     Args:
         cfg (StackNetworkConfig): Network configuration.
-        epr_rounds (int): Number of EPR rounds.
+        rounds (int): Number of EPR rounds.
         num_experiments (int): Number of experiments per configuration.
         sweep_params (list): Parameters to sweep.
         ranges (list): Ranges for each parameter.
@@ -107,67 +108,49 @@ def sweep_parameters(
     """
     os.makedirs(output_dir, exist_ok=True)
 
+    # Parse parameter ranges.
     param_ranges = {
         param: parse_range(rng_str, param)
         for param, rng_str in zip(sweep_params, ranges)
     }
-    combinations = list(
-        itertools.product(*[param_ranges[param] for param in sweep_params])
+    # Create all combinations of parameters.
+    comb_list = list(
+        itertools.product(*(param_ranges[param] for param in sweep_params))
     )
 
     # Map experiments to their program classes.
-    exp_dic = {
+    experiment_map = {
         "2_teleportations": (Alice2Teleportations, Bob2Teleportations),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
         "dqft2": (AliceDQFT2, BobDQFT2),
         "dgrover2": (AliceDGrover2, BobDGrover2),
         "toffoli": (AliceToffoli, BobToffoli, CharlieToffoli),
     }
-    classes = exp_dic.get(experiment, (AliceProgram, BobProgram))
+    classes = experiment_map.get(experiment, (AliceProgram, BobProgram))
+    names = ["Alice", "Bob"] + (["Charlie"] if len(classes) > 2 else [])
+    programs = {
+        name: cls(num_epr_rounds=rounds) for name, cls in zip(names, classes)
+    }
 
     results = []
-    for comb in combinations:
-        # Update network configuration for each parameter.
-        for param, value in zip(sweep_params, comb):
-            for link in cfg.links:
-                if getattr(link, "link_cfg", None) is not None:
-                    link.cfg[param] = value
-            for stack in cfg.stacks:
-                if getattr(stack, "qdevice_cfg", None) is not None:
-                    stack.qdevice_cfg[param] = value
+    for comb in comb_list:
+        # Map parameter to value.
+        map_param = dict(zip(sweep_params, comb))
+        # Update the configuration with the combination.
+        update_cfg(cfg, map_param)
 
-        if experiment == "toffoli":
-            programs = {
-                "Alice": classes[0](num_epr_rounds=epr_rounds),
-                "Bob": classes[1](num_epr_rounds=epr_rounds),
-                "Charlie": classes[2](num_epr_rounds=epr_rounds),
-            }
-            # For toffoli, run() returns three values.
-            _, _, res = run(
-                config=cfg,
-                programs=programs,
-                num_times=num_experiments,
-            )
-        else:
-            programs = {
-                "Alice": classes[0](num_epr_rounds=epr_rounds),
-                "Bob": classes[1](num_epr_rounds=epr_rounds),
-            }
-            _, res = run(
-                config=cfg,
-                programs=programs,
-                num_times=num_experiments,
-            )
+        res = run(config=cfg, programs=programs, num_times=num_experiments)
 
-        all_fid_results = [r[0] for r in res]
-        all_time_results = [r[1] for r in res]
+        last_program_results = res[len(programs) - 1]
+        all_fid_results = [r[0] for r in last_program_results]
+        all_time_results = [r[1] for r in last_program_results]
 
         avg_fid = np.mean(all_fid_results) * 100
         avg_time = np.mean(all_time_results)
 
         results.append(
             {
-                **dict(zip(sweep_params, comb)),
+                **map_param,
                 "Fidelity Results": all_fid_results,
                 "Simulation Time Results": all_time_results,
                 "Average Fidelity (%)": avg_fid,
@@ -176,8 +159,8 @@ def sweep_parameters(
         )
 
     df = pd.DataFrame(results)
-    path = os.path.join(output_dir, f"{experiment}_results.csv")
-    df.to_csv(path)
+    csv_path = os.path.join(output_dir, f"{experiment}_results.csv")
+    df.to_csv(csv_path, index=False)
     return df
 
 

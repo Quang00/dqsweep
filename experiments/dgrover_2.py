@@ -96,8 +96,6 @@ class AliceDGrover2(Program):
             a_q.measure()
             yield from context.connection.flush()
 
-        return {}
-
 
 # =============================================================================
 # Bob's Program for distributed Grover on 2 qubits

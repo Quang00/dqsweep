@@ -94,8 +94,6 @@ class AliceProgram(Program):
             alice_qubit.measure()
             yield from connection.flush()
 
-        return {}
-
 
 # =============================================================================
 # Bob's Program for Nonlocal CNOT Gate

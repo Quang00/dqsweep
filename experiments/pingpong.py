@@ -30,6 +30,7 @@ rng = np.random.default_rng(42)
 PHI = rng.random() * np.pi
 THETA = rng.random() * np.pi
 
+
 # =============================================================================
 # Alice's Ping-Pong Teleportation Program
 # =============================================================================
@@ -85,8 +86,6 @@ class AlicePingpongTeleportation(Program):
         )
 
         yield from context.connection.flush()
-
-        return {}
 
 
 # =============================================================================
