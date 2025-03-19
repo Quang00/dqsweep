@@ -39,11 +39,17 @@ links:
   - stack1: Charlie
     stack2: Bob
     typ: perfect
+  - stack1: Alice
+    stack2: Bob
+    typ: perfect
 
 clinks:
   - stack1: Charlie
     stack2: Alice
     typ: instant
   - stack1: Charlie
+    stack2: Bob
+    typ: instant
+  - stack1: Alice
     stack2: Bob
     typ: instant

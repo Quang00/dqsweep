@@ -245,7 +245,7 @@ def parallelize_comb(comb, cfg, sweep_params, num_experiments, programs):
         dict: A dictionary with the parameter mapping and computed results.
     """
     # Map parameter name to value.
-    map_param = dict(zip(sweep_params, comb))
+    map_param = dict(zip(sweep_params, comb, strict=False))
 
     local_cfg = copy.deepcopy(cfg)
     update_cfg(local_cfg, map_param)
@@ -353,7 +353,7 @@ def save_single_heatmap(
     if len(pairs) == 1:
         axes = [axes]
 
-    for ax, (p, q) in zip(axes, pairs):
+    for ax, (p, q) in zip(axes, pairs, strict=False):
         plot_heatmap(ax, df, p, q, metric, params, exp, rounds)
 
     plt.tight_layout()
@@ -431,7 +431,8 @@ def plot_combined_heatmaps(
         {
             "name": "Average Fidelity (%)",
             "cmap": "magma",
-            "file_label": "fidelity"},
+            "file_label": "fidelity"
+        },
         {
             "name": "Average Simulation Time (ms)",
             "cmap": "viridis",
@@ -451,7 +452,7 @@ def plot_combined_heatmaps(
 # =============================================================================
 def toffoli(control1: Qubit, control2: Qubit, target: Qubit) -> None:
     """Performs a Toffoli gate with `control1` and `control2` as control qubits
-    and `target` as target, using CNOTS, Ts and Hadamard gates.
+    and `target` as target, using CNOT, Rz and Hadamard gates.
 
     See https://en.wikipedia.org/wiki/Toffoli_gate
 
@@ -489,6 +490,47 @@ def ccz(control1: Qubit, control2: Qubit, target: Qubit) -> None:
     target.H()
     toffoli(control1, control2, target)
     target.H()
+
+
+def n_qubit_controlled_u(
+    controls_qubit: List[Qubit],
+    context: ProgramContext,
+    controlled_u_gate: Callable,
+    target: Qubit,
+) -> None:
+    """Performs an n-qubit controlled-U gate with `controls_qubit` as controls
+    and `target` as target, using ancillas qubit, Toffoli gates and a
+    `controlled_u_gate` as controlled-U gate.
+
+    The implementation is from "M. A. Nielsen and I. L. Chuang, Quantum Comput-
+    ation and Quantum Information: 10th Anniversary Edition. Figure 4.10.".
+
+    Args:
+        controls_qubit (List[Qubit]): The list of n control qubits.
+        context (ProgramContext): Context of the current program.
+        controlled_u_gate (Callable): The controlled-U gate.
+        target (Qubit): Target qubit.
+    """
+
+    n = len(controls_qubit)
+    if n == 0 or n == 1:
+        controlled_u_gate(controls_qubit[0], target)
+        return
+
+    ancillas = [Qubit(context.connection) for _ in range(n - 1)]
+
+    toffoli(controls_qubit[0], controls_qubit[1], ancillas[0])
+    for i in range(2, n):
+        toffoli(controls_qubit[i], ancillas[i - 2], ancillas[i - 1])
+
+    controlled_u_gate(ancillas[-1], target)
+
+    for i in reversed(range(2, n)):
+        toffoli(controls_qubit[i], ancillas[i - 2], ancillas[i - 1])
+    toffoli(controls_qubit[0], controls_qubit[1], ancillas[0])
+
+    for ancilla in ancillas:
+        ancilla.measure()
 
 
 # =============================================================================
@@ -605,7 +647,7 @@ def distributed_n_qubit_controlled_u_target(
 
     Args:
         context (ProgramContext): Context of the current program.
-        peer_names (List[str]): Name of the peer engaging.
+        peer_names (List[str]): Name of the peers engaging.
         target_qubit (Qubit): The target qubit.
         controlled_u (Callable[..., None]): The n-qubits gate U with this
         signature `U(control_qubit_1, control_qubit_2, ..., target_qubit)`.
