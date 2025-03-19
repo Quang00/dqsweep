@@ -155,41 +155,40 @@ def metric_correlation(
 
 
 def run_simulation(
-    config: str,
-    epr_rounds: int = 10,
-    num_times: int = 10,
-    classes: dict = None,
-):
+    config: StackNetworkConfig,
+    programs: dict = None,
+) -> float:
     """Runs a simulation with the given configuration and program classes.
 
     Args:
         config (str): Path to the network configuration YAML file.
-        epr_rounds (int): Number of EPR rounds to execute in the simulation.
-        num_times (int): Number of simulation repetitions.
-        classes (dict): A dictionary mapping program names to their classes.
+        programs (dict): A dictionary mapping program names to their classes.
 
     Returns:
-        dict: A dictionary containing simulation results for each node.
+        float: Average fidelity of the simulation.
     """
-    if classes is None or not classes:
+    if programs is None or not programs:
         raise ValueError("At least one class must be provided.")
 
-    # Load the network configuration.
-    cfg = StackNetworkConfig.from_file(config)
-
-    # Instantiate all program classes.
+    times = 9
     programs = {
-        name: cls(num_epr_rounds=epr_rounds) for name, cls in classes.items()
+        name: cls(num_epr_rounds=times) for name, cls in programs.items()
     }
 
     # Run the simulation with the provided configuration.
-    results = run(
-        config=cfg,
+    all_results = run(
+        config=config,
         programs=programs,
-        num_times=num_times,
+        num_times=times,
     )
 
-    return results
+    results = all_results[len(programs) - 1]
+
+    # Compute the average fidelity.
+    all_fid_results = [res[0] for res in results]
+    avg_fidelity = np.mean(all_fid_results)
+
+    return avg_fidelity
 
 
 def check_sweep_params_input(cfg: StackNetworkConfig, params: str) -> bool:

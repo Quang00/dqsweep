@@ -5,6 +5,7 @@ from experiments.nonlocal_cnot_2_teleportations import (
     Bob2Teleportations,
 )
 from experiments.utils import run_simulation
+from squidasm.util.util import create_two_node_network
 
 
 def test_alice_ket_1_bob_ket_0():
@@ -15,19 +16,15 @@ def test_alice_ket_1_bob_ket_0():
 
     At the end, Bob's qubit should be in state |1>.
     """
-    _, results = run_simulation(
-        config="configurations/perfect.yaml",
-        epr_rounds=10,
-        num_times=10,
-        classes={
+    config = create_two_node_network()
+
+    avg_fidelity = run_simulation(
+        config=config,
+        programs={
             "Alice": Alice2Teleportations,
             "Bob": Bob2Teleportations,
-        }
+        },
     )
-
-    # Compute the average fidelity.
-    all_fid_results = [res[0] for res in results]
-    avg_fidelity = np.mean(all_fid_results)
 
     # Check that the average fidelity is equal to 1.
     np.testing.assert_equal(avg_fidelity, 1.0)

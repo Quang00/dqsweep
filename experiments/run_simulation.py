@@ -111,7 +111,7 @@ def sweep_parameters(
     # Parse parameter ranges.
     param_ranges = {
         param: parse_range(rng_str, param)
-        for param, rng_str in zip(sweep_params, ranges)
+        for param, rng_str in zip(sweep_params, ranges, strict=False)
     }
     # Create all combinations of parameters.
     comb_list = list(
@@ -129,7 +129,8 @@ def sweep_parameters(
     classes = experiment_map.get(experiment, (AliceProgram, BobProgram))
     names = ["Alice", "Bob"] + (["Charlie"] if len(classes) > 2 else [])
     programs = {
-        name: cls(num_epr_rounds=rounds) for name, cls in zip(names, classes)
+        name: cls(num_epr_rounds=rounds)
+        for name, cls in zip(names, classes, strict=False)
     }
 
     func = partial(
@@ -244,7 +245,7 @@ def main():
         # Build parameter range dictionary
         param_range_dict = {
             param: parse_range(rng_str, param)
-            for param, rng_str in zip(sweep_params, args.ranges)
+            for param, rng_str in zip(sweep_params, args.ranges, strict=False)
         }
 
         # Generate heat maps for each metrics or a combined heat map
