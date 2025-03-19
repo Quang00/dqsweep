@@ -1,7 +1,7 @@
 import numpy as np
 
 from experiments.dqft_2 import AliceDQFT2, BobDQFT2
-from experiments.utils import run_simulation
+from experiments.utils import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_two_node_network
 
 
@@ -16,7 +16,7 @@ def test_alice_ket_0_bob_ket_0():
     """
     config = create_two_node_network()
 
-    avg_fidelity = run_simulation(
+    avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
             "Alice": AliceDQFT2,

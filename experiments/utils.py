@@ -154,11 +154,12 @@ def metric_correlation(
     print(f"Saved correlation values to {filename}")
 
 
-def run_simulation(
+def simulate_and_compute_avg_fidelity(
     config: StackNetworkConfig,
     programs: dict = None,
 ) -> float:
-    """Runs a simulation with the given configuration and program classes.
+    """Runs a simulation with the given configuration and program classes and
+    compute the average fidelilty of the simulation.
 
     Args:
         config (str): Path to the network configuration YAML file.

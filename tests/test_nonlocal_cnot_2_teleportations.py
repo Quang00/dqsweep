@@ -4,7 +4,7 @@ from experiments.nonlocal_cnot_2_teleportations import (
     Alice2Teleportations,
     Bob2Teleportations,
 )
-from experiments.utils import run_simulation
+from experiments.utils import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_two_node_network
 
 
@@ -18,7 +18,7 @@ def test_alice_ket_1_bob_ket_0():
     """
     config = create_two_node_network()
 
-    avg_fidelity = run_simulation(
+    avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
             "Alice": Alice2Teleportations,

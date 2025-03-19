@@ -5,7 +5,7 @@ from experiments.nonlocal_toffoli import (
     BobToffoli,
     CharlieToffoli
 )
-from experiments.utils import run_simulation
+from experiments.utils import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_complete_graph_network
 
 
@@ -36,7 +36,7 @@ def test_alice_ket_1_bob_ket_1_charlie_ket_0():
         qdevice_cfg=qdevice_cfg,
     )
 
-    avg_fidelity = run_simulation(
+    avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
             "Alice": AliceToffoli,
