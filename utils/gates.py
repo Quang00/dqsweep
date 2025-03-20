@@ -54,7 +54,7 @@ def ccz(control1: Qubit, control2: Qubit, target: Qubit) -> None:
 def n_qubit_controlled_u(
     controls_qubit: List[Qubit],
     context: ProgramContext,
-    controlled_u_gate: Callable,
+    controlled_u_gate: Callable[[Qubit, Qubit], None],
     target: Qubit,
 ) -> None:
     """Performs an n-qubit controlled-U gate with `controls_qubit` as controls
@@ -67,7 +67,9 @@ def n_qubit_controlled_u(
     Args:
         controls_qubit (List[Qubit]): The list of n control qubits.
         context (ProgramContext): Context of the current program.
-        controlled_u_gate (Callable): The controlled-U gate.
+        controlled_u_gate (Callable): The controlled-U gate (e.g.
+        for CNOT: `lambda control, target: control.cnot(target)`,
+        for CZ: `lambda control, target: control.cz(target)`)
         target (Qubit): Target qubit.
     """
 
