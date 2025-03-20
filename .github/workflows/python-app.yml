@@ -52,7 +52,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Run tests with coverage
         run: |
-            coverage run --source=experiments -m pytest tests/
+            coverage run --source=experiments,utils -m pytest tests/
             coverage report -m
             coverage xml  # Generate coverage.xml for Coveralls
 
