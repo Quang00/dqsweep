@@ -3,14 +3,11 @@ from typing import List
 import numpy as np
 from netqasm.sdk.qubit import Qubit
 
-from experiments.utils import (
-    ccz,
-    run,
-    toffoli,
-)
 from squidasm.run.stack.config import StackNetworkConfig
+from squidasm.run.stack.run import run
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util.util import create_complete_graph_network
+from utils.gates import ccz, toffoli
 
 
 class TestGates:

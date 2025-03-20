@@ -5,8 +5,8 @@ from experiments.pingpong import (
     AlicePingpongTeleportation,
     BobPingpongTeleportation,
 )
-from experiments.utils import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_two_node_network
+from utils.helper import simulate_and_compute_avg_fidelity
 
 
 @pytest.mark.parametrize("epr_rounds", [1, 3])

@@ -1,8 +1,8 @@
 import numpy as np
 
 from experiments.dgrover_2 import AliceDGrover2, BobDGrover2
-from experiments.utils import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_two_node_network
+from utils.helper import simulate_and_compute_avg_fidelity
 
 
 def test_alice_ket_0_bob_ket_0():

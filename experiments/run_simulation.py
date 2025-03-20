@@ -69,14 +69,14 @@ from experiments.pingpong import (
     AlicePingpongTeleportation,
     BobPingpongTeleportation
 )
-from experiments.utils import (
+from utils.helper import (
     check_sweep_params_input,
     create_subdir,
     metric_correlation,
     parallelize_comb,
     parse_range,
-    plot_combined_heatmaps,
 )
+from utils.plots import plot_combined_heatmaps
 from squidasm.run.stack.config import StackNetworkConfig
 
 

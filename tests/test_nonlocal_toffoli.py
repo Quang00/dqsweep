@@ -5,8 +5,8 @@ from experiments.nonlocal_toffoli import (
     BobToffoli,
     CharlieToffoli
 )
-from experiments.utils import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_complete_graph_network
+from utils.helper import simulate_and_compute_avg_fidelity
 
 
 def test_alice_ket_1_bob_ket_1_charlie_ket_0():
@@ -18,22 +18,14 @@ def test_alice_ket_1_bob_ket_1_charlie_ket_0():
 
     At the end, Charlie's qubit should be in state |1>.
     """
-    node_names = ["Alice", "Bob", "Charlie"]
-    link_typ = "perfect"
-    link_cfg = {}
-    clink_typ = "instant"
-    clink_cfg = None
-    qdevice_typ = "generic"
-    qdevice_cfg = None
-
     config = create_complete_graph_network(
-        node_names=node_names,
-        link_typ=link_typ,
-        link_cfg=link_cfg,
-        clink_typ=clink_typ,
-        clink_cfg=clink_cfg,
-        qdevice_typ=qdevice_typ,
-        qdevice_cfg=qdevice_cfg,
+        node_names=["Alice", "Bob", "Charlie"],
+        link_typ="perfect",
+        link_cfg={},
+        clink_typ="instant",
+        clink_cfg=None,
+        qdevice_typ="generic",
+        qdevice_cfg=None,
     )
 
     avg_fidelity = simulate_and_compute_avg_fidelity(

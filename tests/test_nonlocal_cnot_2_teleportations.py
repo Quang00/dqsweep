@@ -4,7 +4,7 @@ from experiments.nonlocal_cnot_2_teleportations import (
     Alice2Teleportations,
     Bob2Teleportations,
 )
-from experiments.utils import simulate_and_compute_avg_fidelity
+from utils.helper import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_two_node_network
 
 

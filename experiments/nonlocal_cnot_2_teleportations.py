@@ -29,7 +29,7 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util.routines import teleport_recv, teleport_send
 
-from experiments.utils import compute_fidelity
+from utils.helper import compute_fidelity
 
 
 # =============================================================================

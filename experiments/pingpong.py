@@ -21,7 +21,8 @@ from netsquid.util.simtools import MILLISECOND, sim_time
 from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 from squidasm.util import get_qubit_state, get_reference_state
 
-from experiments.utils import pingpong_initiator, pingpong_responder
+from utils.routines import pingpong_initiator, pingpong_responder
+
 
 # =============================================================================
 # Initialize a random qubit state

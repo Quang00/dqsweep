@@ -17,15 +17,18 @@ import numpy as np
 from netqasm.sdk.qubit import Qubit
 from netsquid.util.simtools import MILLISECOND, sim_time
 
-from experiments.utils import (
-    compute_fidelity,
+from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
+from utils.gates import toffoli
+from utils.helper import compute_fidelity
+from utils.routines import (
     distributed_n_qubit_controlled_u_control,
     distributed_n_qubit_controlled_u_target,
-    toffoli,
 )
-from squidasm.sim.stack.program import Program, ProgramContext, ProgramMeta
 
 
+# =============================================================================
+# Alice's Program for Nonlocal Toffoli Gate
+# =============================================================================
 class AliceToffoli(Program):
     PEER_NAME = "Charlie"
 
@@ -59,6 +62,9 @@ class AliceToffoli(Program):
             yield from connection.flush()
 
 
+# =============================================================================
+# Bob's Program for Nonlocal Toffoli Gate
+# =============================================================================
 class BobToffoli(Program):
     PEER_NAME = "Charlie"
 
@@ -92,6 +98,9 @@ class BobToffoli(Program):
             yield from connection.flush()
 
 
+# =============================================================================
+# Charlie's Program for Nonlocal Toffoli Gate
+# =============================================================================
 class CharlieToffoli(Program):
     PEERS = ["Alice", "Bob"]
 

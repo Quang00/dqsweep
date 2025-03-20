@@ -27,11 +27,8 @@ from squidasm.util.routines import (
     distributed_CPhase_target
 )
 
-from experiments.utils import (
-    compute_fidelity,
-    pingpong_initiator,
-    pingpong_responder
-)
+from utils.helper import compute_fidelity
+from utils.routines import pingpong_initiator, pingpong_responder
 
 
 # =============================================================================

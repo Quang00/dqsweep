@@ -3,13 +3,13 @@ import os
 import numpy as np
 import pytest
 
-from experiments.utils import (
+from squidasm.run.stack.config import StackNetworkConfig
+from utils.helper import (
     check_sweep_params_input,
     create_subdir,
     parse_range,
     truncate_param,
 )
-from squidasm.run.stack.config import StackNetworkConfig
 
 
 class TestTruncateParam:
