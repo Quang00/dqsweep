@@ -11,6 +11,14 @@ from squidasm.util.util import create_complete_graph_network
 from utils.gates import ccz, n_qubit_controlled_u, toffoli
 
 
+def cnot_gate(control, target):
+    control.cnot(target)
+
+
+def cz_gate(control, target):
+    control.cphase(target)
+
+
 class TestGates:
     def _create_config(self, node_names: List[str]) -> StackNetworkConfig:
         """Create a network with the node's names given.
@@ -219,33 +227,33 @@ class TestGates:
         "ctrls_init_state, tgt_init_state, controlled_u_gate, expected",
         [
             # CNOT Gate
-            ((0, 0, 0), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
-            ((0, 0, 1), 1, lambda ctrl, tgt: ctrl.cnot(tgt), 1),
-            ((0, 1, 0), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
-            ((0, 1, 1), 1, lambda ctrl, tgt: ctrl.cnot(tgt), 1),
-            ((1, 1, 0), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
-            ((1, 1, 1), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 1),
-            ((1, 1, 1), 1, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
-            (((0,) * 5), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
-            (((0,) * 5), 1, lambda ctrl, tgt: ctrl.cnot(tgt), 1),
-            (((1,) * 5), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 1),
-            (((1,) * 5), 1, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
-            (((1,) * 4 + (0,)), 1, lambda ctrl, tgt: ctrl.cnot(tgt), 1),
-            (((1,) + (0,) * 4), 0, lambda ctrl, tgt: ctrl.cnot(tgt), 0),
+            ((0, 0, 0), 0, cnot_gate, 0),
+            ((0, 0, 1), 1, cnot_gate, 1),
+            ((0, 1, 0), 0, cnot_gate, 0),
+            ((0, 1, 1), 1, cnot_gate, 1),
+            ((1, 1, 0), 0, cnot_gate, 0),
+            ((1, 1, 1), 0, cnot_gate, 1),
+            ((1, 1, 1), 1, cnot_gate, 0),
+            (((0,) * 5), 0, cnot_gate, 0),
+            (((0,) * 5), 1, cnot_gate, 1),
+            (((1,) * 5), 0, cnot_gate, 1),
+            (((1,) * 5), 1, cnot_gate, 0),
+            (((1,) * 4 + (0,)), 1, cnot_gate, 1),
+            (((1,) + (0,) * 4), 0, cnot_gate, 0),
             # CZ Gate
-            ((0, 0, 0), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
-            ((0, 0, 1), 1, lambda ctrl, tgt: ctrl.cphase(tgt), 1),
-            ((0, 1, 0), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
-            ((0, 1, 1), 1, lambda ctrl, tgt: ctrl.cphase(tgt), 1),
-            ((1, 1, 0), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
-            ((1, 1, 1), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
-            ((1, 1, 1), 1, lambda ctrl, tgt: ctrl.cphase(tgt), 1),
-            (((0,) * 5), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
-            (((0,) * 5), 1, lambda ctrl, tgt: ctrl.cphase(tgt), 1),
-            (((1,) * 5), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
-            (((1,) * 5), 1, lambda ctrl, tgt: ctrl.cphase(tgt), 1),
-            (((1,) * 4 + (0,)), 1, lambda ctrl, tgt: ctrl.cphase(tgt), 1),
-            (((1,) + (0,) * 4), 0, lambda ctrl, tgt: ctrl.cphase(tgt), 0),
+            ((0, 0, 0), 0, cz_gate, 0),
+            ((0, 0, 1), 1, cz_gate, 1),
+            ((0, 1, 0), 0, cz_gate, 0),
+            ((0, 1, 1), 1, cz_gate, 1),
+            ((1, 1, 0), 0, cz_gate, 0),
+            ((1, 1, 1), 0, cz_gate, 0),
+            ((1, 1, 1), 1, cz_gate, 1),
+            (((0,) * 5), 0, cz_gate, 0),
+            (((0,) * 5), 1, cz_gate, 1),
+            (((1,) * 5), 0, cz_gate, 0),
+            (((1,) * 5), 1, cz_gate, 1),
+            (((1,) * 4 + (0,)), 1, cz_gate, 1),
+            (((1,) + (0,) * 4), 0, cz_gate, 0),
         ],
     )
     def test_n_controlled_u_states(
