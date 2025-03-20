@@ -1,6 +1,6 @@
 import numpy as np
 
-from experiments.nonlocal_cnot import AliceProgram, BobProgram
+from experiments.nonlocal_cnot_telegate import AliceProgram, BobProgram
 from utils.helper import simulate_and_compute_avg_fidelity
 from squidasm.util.util import create_two_node_network
 

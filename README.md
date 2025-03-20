@@ -2,20 +2,21 @@
 
 ![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg)
 [![Coverage Status](https://img.shields.io/coveralls/Quang00/dqsweep.svg?logo=Coveralls)](https://coveralls.io/r/Quang00/dqsweep)
+![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-ffdd54?logo=python&logoColor=ffdd54)
 
 This repository is designed to analyze the performance (fidelity and latency) of multiple distributed quantum experiments over a configurable quantum network. It uses quantum network simulators such as [NetSquid](https://netsquid.org/) and [SquidASM](https://github.com/QuTech-Delft/squidasm).
 
 ## Overview
 
-The project explores the performance of several quantum distributed experiments by sweeping given parameters (such as depolarization probabilities, gate times, and qubit coherence times) from a quantum network and then assess two metrics:
+The repository explores the performance of several quantum distributed experiments by sweeping given parameters (such as depolarization probabilities, gate times, and qubit coherence times) from a quantum network and then assess two metrics:
 
 - **Average Fidelity (%):** Density matrix output compared to the density matrix expected.
 - **Average Simulation Time (ms):** Simulation time to execute the experiment.
 
 The experiments implemented in this repository include:
 
-- **Nonlocal CNOT Gate (`nonlocal_cnot.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
-- **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_2_teleportations.py`):** Another implementation of the distributed CNOT gate using two quantum teleportations.
+- **Nonlocal CNOT Gate (`nonlocal_cnot_telegate.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
+- **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_teledata.py`):** Another implementation of the distributed CNOT gate using two quantum teleportations.
 - **Nonlocal Toffoli Gate (`nonlocal_toffoli.py`)**: Implementation of a distributed Toffoli gate between Alice, Bob and Charlie.
 - **Ping-Pong Teleportation (`pingpong.py`):** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits (`dqft_2.py`):** Implementation of a distributed QFT on two qubits.
@@ -56,7 +57,7 @@ The experiments are executed through the `run_simulation.py` script, which does 
 
 2. **Setup the Experiment and Multiple Parameters:**
 
-   - (**`--experiment`**): Choose the experiment to run (options include `cnot`, `pingpong`, `dqft2`, `dgrover2`, or `2_teleportations`). The default experiment is `cnot`.
+   - (**`--experiment`**): Choose the experiment to run (options include `cnot_telegate`, `pingpong`, `dqft2`, `dgrover2`, or `cnot_teledata`). The default experiment is `cnot_telegate`.
    - (**`--epr_rounds`**): Specify the number of EPR rounds per simulation. The default number is `10`.
    - (**`--num_experiments`**): Specify the number of simulation runs per parameter combination. The default number is `10`.
    - (**`--sweep_params`**): Define the comma-separated list of parameter to sweep (e.g., single_qubit_gate_depolar_prob, two_qubit_gate_depolar_prob, T1, T2, etc.). The default parameters are `single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob`.
@@ -78,8 +79,8 @@ The experiments are executed through the `run_simulation.py` script, which does 
 
 The provied experiments:
 
-- **`cnot`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
-- **`2_teleportations`**: Nonlocal CNOT gate using two teleportations.
+- **`cnot_telegate`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
+- **`cnot_teledata`**: Nonlocal CNOT gate using two teleportations.
 - **`toffoli`**: Nonlocal Toffoli gate using two ebits and four bits in each direction.
 - **`pingpong`**: Ping-pong quantum teleportation between Alice and Bob.
 - **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.

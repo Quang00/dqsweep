@@ -55,8 +55,8 @@ import pandas as pd
 
 from experiments.dgrover_2 import AliceDGrover2, BobDGrover2
 from experiments.dqft_2 import AliceDQFT2, BobDQFT2
-from experiments.nonlocal_cnot import AliceProgram, BobProgram
-from experiments.nonlocal_cnot_2_teleportations import (
+from experiments.nonlocal_cnot_telegate import AliceProgram, BobProgram
+from experiments.nonlocal_cnot_teledata import (
     Alice2Teleportations,
     Bob2Teleportations,
 )
@@ -120,7 +120,7 @@ def sweep_parameters(
 
     # Map experiments to their program classes.
     experiment_map = {
-        "2_teleportations": (Alice2Teleportations, Bob2Teleportations),
+        "cnot_teledata": (Alice2Teleportations, Bob2Teleportations),
         "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
         "dqft2": (AliceDQFT2, BobDQFT2),
         "dgrover2": (AliceDGrover2, BobDGrover2),

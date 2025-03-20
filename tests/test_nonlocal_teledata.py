@@ -1,6 +1,6 @@
 import numpy as np
 
-from experiments.nonlocal_cnot_2_teleportations import (
+from experiments.nonlocal_cnot_teledata import (
     Alice2Teleportations,
     Bob2Teleportations,
 )
