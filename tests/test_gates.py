@@ -191,11 +191,15 @@ class TestGates:
         config = self._create_config(["Alice"])
         program = self.ToffoliTest(initial_state=initial_state)
         all_results = run(config, {"Alice": program}, num_times=10)
-        result = all_results[0][0]
+        result = all_results[0]
 
-        np.testing.assert_equal(result["m0"], expected[0])
-        np.testing.assert_equal(result["m1"], expected[1])
-        np.testing.assert_equal(result["m2"], expected[2])
+        avg_m0 = np.mean([res["m0"] for res in result])
+        avg_m1 = np.mean([res["m1"] for res in result])
+        avg_m2 = np.mean([res["m2"] for res in result])
+
+        np.testing.assert_equal(avg_m0, expected[0])
+        np.testing.assert_equal(avg_m1, expected[1])
+        np.testing.assert_equal(avg_m2, expected[2])
 
     @pytest.mark.parametrize(
         "initial_state, expected",
@@ -217,11 +221,15 @@ class TestGates:
         config = self._create_config(["Alice"])
         program = self.CCZTest(initial_state=initial_state)
         all_results = run(config, {"Alice": program}, num_times=10)
-        result = all_results[0][0]
+        result = all_results[0]
 
-        np.testing.assert_equal(result["m0"], expected[0])
-        np.testing.assert_equal(result["m1"], expected[1])
-        np.testing.assert_equal(result["m2"], expected[2])
+        avg_m0 = np.mean([res["m0"] for res in result])
+        avg_m1 = np.mean([res["m1"] for res in result])
+        avg_m2 = np.mean([res["m2"] for res in result])
+
+        np.testing.assert_equal(avg_m0, expected[0])
+        np.testing.assert_equal(avg_m1, expected[1])
+        np.testing.assert_equal(avg_m2, expected[2])
 
     @pytest.mark.parametrize(
         "ctrls_init_state, tgt_init_state, controlled_u_gate, expected",
@@ -269,7 +277,8 @@ class TestGates:
             controlled_u_gate=controlled_u_gate,
         )
         all_results = run(config, {"Alice": program}, num_times=10)
-        result = all_results[0][0]
+        target_meas = [res["target"] for res in all_results[0]]
 
-        # Check the final measurement of the target qubit
-        np.testing.assert_equal(result["target"], expected)
+        avg_meas = np.mean(target_meas)
+
+        np.testing.assert_equal(avg_meas, expected)
