@@ -20,7 +20,7 @@ The repository explores the performance of several quantum distributed experimen
 The experiments implemented in this repository include:
 
 - **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_teledata.py`):** Implementation of the distributed CNOT gate using two quantum teleportations.
-- **Nonlocal CNOT Gate (`nonlocal_cnot_telegate.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
+- **Nonlocal CNOT Gate with Telegate (`nonlocal_cnot_telegate.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
 - **Distributed Grover on Two Qubits (`dgrover_2.py`):** Implementation of a distributed Grover on two qubits with an initial pingpong quantum teleportation exchange where Alice initiates the state of Bob's qubit.
 - **Distributed Grover on N Qubits (`dgrover.py`):** General implementation of a distributed Grover on n qubits with an oracle that marks the state |1...1>.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits (`dqft_2.py`):** Implementation of a distributed QFT on two qubits.
@@ -85,7 +85,7 @@ The experiments are executed through the `run_simulation.py` script, which does 
 The provied experiments:
 
 - **`cnot_teledata`**: Nonlocal CNOT gate using two quantum teleportations.
-- **`cnot_telegate`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
+- **`cnot_telegate`**: Nonlocal CNOT gate using telegate.
 - **`dgrover`**: General Distributed Grover on n qubits that searches |1...1>.
 - **`dgrover2`**: Distributed Grover on 2 qubits with an initial pingpong exchange between Alice and Bob.
 - **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.

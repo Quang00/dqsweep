@@ -169,44 +169,56 @@ def main():
 
     """
     parser = argparse.ArgumentParser(
-        description="Simulate distributed quantum experiments"
+        description="Performance analysis of several distributed quantum"
+        "computing experiments by sweeping given parameters."
     )
     parser.add_argument(
         "--config",
         type=str,
         default="configurations/perfect.yaml",
-        help="Path to the configuration.",
+        help="Path to the configuration."
+        "(Default: configurations/perfect.yaml)",
     )
     parser.add_argument(
         "--experiment",
         type=str,
         default="cnot",
-        help="Distributed experiments (e.g., cnot, pingpong, dgrover2, ...).",
+        help="Distributed experiments (cnot_teledata, cnot_telegate,"
+        "dgrover, dgrover2, dqft2, pingpong, toffoli...)."
+        "(Default: cnot_teledata).",
     )
     parser.add_argument(
-        "--epr_rounds", type=int, default=10, help="Number of EPR rounds."
+        "--epr_rounds",
+        type=int,
+        default=10,
+        help="Number of EPR rounds. (Default: 10)."
     )
     parser.add_argument(
         "--num_experiments",
         type=int,
         default=10,
-        help="Number of experiments per combination (default 10).",
+        help="Number of experiments per combination. (Default: 10).",
     )
     parser.add_argument(
         "--sweep_params",
         type=str,
         default="single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob",
-        help="Comma-separated list of configuration parameter names to sweep",
+        help="Comma-separated list of configuration parameter names to sweep."
+        "(Default single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob)",
     )
     parser.add_argument(
         "--ranges",
         nargs="+",
         type=str,
         default=["0.0,0.8,10", "0.0,0.8,10"],
-        help="One range string per parameter (format: 'start,end,points').",
+        help="One range string per parameter (format: 'start,end,points')."
+        "(Default: \"0.0,0.8,10 \"0.0,0.8,10\")",
     )
     parser.add_argument(
-        "--output_dir", type=str, default="results", help="Output directory"
+        "--output_dir",
+        type=str,
+        default="results",
+        help="Path to the output directory. (Default: results)"
     )
     args = parser.parse_args()
 
