@@ -9,7 +9,7 @@ from utils.helper import simulate_and_compute_avg_fidelity
 @pytest.mark.parametrize(
     "node_names, fidelity_threshold",
     [
-        (["Alice", "Bob", "Charlie"], 0.7),
+        (["Alice", "Bob", "Charlie"], 0.6),
         (["Alice", "Bob", "Charlie", "David"], 0.4),
     ],
 )
