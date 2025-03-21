@@ -2,7 +2,7 @@
 
 ![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg)
 [![Coverage Status](https://img.shields.io/coveralls/Quang00/dqsweep.svg?logo=Coveralls)](https://coveralls.io/r/Quang00/dqsweep)
-![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11-ffdd54?logo=python&logoColor=ffdd54)
+![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-ffdd54?logo=python&logoColor=ffdd54)
 
 This repository is designed to analyze the performance (fidelity and latency) of multiple distributed quantum experiments over a configurable quantum network. It uses quantum network simulators such as [NetSquid](https://netsquid.org/) and [SquidASM](https://github.com/QuTech-Delft/squidasm).
 
