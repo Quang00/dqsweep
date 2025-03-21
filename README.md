@@ -21,7 +21,7 @@ The experiments implemented in this repository include:
 
 - **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_teledata.py`):** Implementation of the distributed CNOT gate using two quantum teleportations.
 - **Nonlocal CNOT Gate (`nonlocal_cnot_telegate.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
-- **Distributed Grover on Two Qubits (`dgrover_2.py`):** Implementation of a distributed Grover on two qubits with an initial pingpong exchange between Alice and Bob.
+- **Distributed Grover on Two Qubits (`dgrover_2.py`):** Implementation of a distributed Grover on two qubits with an initial pingpong quantum teleportation exchange where Alice initiates the state of Bob's qubit.
 - **Distributed Grover on N Qubits (`dgrover.py`):** General implementation of a distributed Grover on n qubits with an oracle that marks the state |1...1>.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits (`dqft_2.py`):** Implementation of a distributed QFT on two qubits.
 - **Ping-Pong Teleportation (`pingpong.py`):** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
@@ -54,7 +54,7 @@ pytest
 
 ## Usage
 
-The experiments are executed through the `run_simulation.py` script, which does the parameter sweeps, runs the given distributed quantum experiment, and produces the results in a folder containing different files. To run the simulation:
+The experiments are executed through the `run_simulation.py` script, which does the parameter sweeps in parallel, runs the given distributed quantum experiment, and produces the results in a folder containing different files. To run the simulation:
 
 1. **Configure A Quantum Network:**
 
@@ -84,7 +84,7 @@ The experiments are executed through the `run_simulation.py` script, which does 
 
 The provied experiments:
 
-- **`cnot_teledata`**: Nonlocal CNOT gate using two teleportations.
+- **`cnot_teledata`**: Nonlocal CNOT gate using two quantum teleportations.
 - **`cnot_telegate`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
 - **`dgrover`**: General Distributed Grover on n qubits that searches |1...1>.
 - **`dgrover2`**: Distributed Grover on 2 qubits with an initial pingpong exchange between Alice and Bob.

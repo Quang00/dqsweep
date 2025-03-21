@@ -14,7 +14,7 @@ from utils.helper import simulate_and_compute_avg_fidelity
     ],
 )
 def test_distributed_quantum_grover(node_names, fidelity_threshold):
-    """Test the distributed quantum Grover for different number of nodes.
+    """Test the distributed Grover for different number of nodes.
     For each cases, the configuration is perfect. The first N-1 nodes are
     the controls nodes and the last node is the target. The average fidelity
     after the simulations should be above a certain threshold.
