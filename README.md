@@ -1,6 +1,6 @@
 # dqsweep
 
-![Pytest and Flake8 validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg)
+![Pytest and Ruff validation](https://github.com/Quang00/DQC/actions/workflows/python-app.yml/badge.svg)
 [![Coverage Status](https://img.shields.io/coveralls/Quang00/dqsweep.svg?logo=Coveralls)](https://coveralls.io/r/Quang00/dqsweep)
 ![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-ffdd54?logo=python&logoColor=ffdd54)
 
