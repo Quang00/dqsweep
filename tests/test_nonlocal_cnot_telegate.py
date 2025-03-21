@@ -14,12 +14,13 @@ def test_alice_ket_1_bob_ket_0():
     At the end, Bob's qubit should be in state |1>.
     """
     config = create_two_node_network()
+    epr_rounds = 10
 
     avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
-            "Alice": AliceProgram,
-            "Bob": BobProgram,
+            "Alice": AliceProgram(epr_rounds),
+            "Bob": BobProgram(epr_rounds),
         },
     )
 

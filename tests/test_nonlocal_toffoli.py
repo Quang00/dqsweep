@@ -27,13 +27,14 @@ def test_alice_ket_1_bob_ket_1_charlie_ket_0():
         qdevice_typ="generic",
         qdevice_cfg=None,
     )
+    epr_rounds = 10
 
     avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
-            "Alice": AliceToffoli,
-            "Bob": BobToffoli,
-            "Charlie": CharlieToffoli,
+            "Alice": AliceToffoli(epr_rounds),
+            "Bob": BobToffoli(epr_rounds),
+            "Charlie": CharlieToffoli(epr_rounds),
         },
     )
 

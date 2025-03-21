@@ -168,16 +168,11 @@ def simulate_and_compute_avg_fidelity(
     if programs is None or not programs:
         raise ValueError("At least one class must be provided.")
 
-    times = 9
-    programs = {
-        name: cls(num_epr_rounds=times) for name, cls in programs.items()
-    }
-
     # Run the simulation with the provided configuration.
     all_results = run(
         config=config,
         programs=programs,
-        num_times=times,
+        num_times=10,
     )
 
     results = all_results[len(programs) - 1]

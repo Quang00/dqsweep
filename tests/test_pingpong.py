@@ -24,8 +24,8 @@ def test_various_hops(epr_rounds):
     avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
-            "Alice": AlicePingpongTeleportation,
-            "Bob": BobPingpongTeleportation,
+            "Alice": AlicePingpongTeleportation(epr_rounds),
+            "Bob": BobPingpongTeleportation(epr_rounds),
         },
     )
 

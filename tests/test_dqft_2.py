@@ -15,12 +15,13 @@ def test_alice_ket_0_bob_ket_0():
     fourier basis:  1/2 (|00> + |01> + |10> + |11>).
     """
     config = create_two_node_network()
+    epr_rounds = 10
 
     avg_fidelity = simulate_and_compute_avg_fidelity(
         config=config,
         programs={
-            "Alice": AliceDQFT2,
-            "Bob": BobDQFT2,
+            "Alice": AliceDQFT2(epr_rounds),
+            "Bob": BobDQFT2(epr_rounds),
         },
     )
 

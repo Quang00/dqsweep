@@ -119,14 +119,14 @@ class TestGates:
 
             return {"m0": int(m0), "m1": int(m1), "m2": int(m2)}
 
-    class NControlledUTest(Program):
+    class NQubitControlledUTest(Program):
         def __init__(
             self,
             ctrls_init_state: tuple,
             tgt_init_state: int,
             controlled_u_gate: Callable[[Qubit, Qubit], None],
         ):
-            """Initialize the n-controlled U test class.
+            """Initialize the n-qubit controlled-U gate test class.
 
             Args:
                 ctrls_init_state (tuple): Initial state for the control qubits.
@@ -264,14 +264,14 @@ class TestGates:
             (((1,) + (0,) * 4), 0, cz_gate, 0),
         ],
     )
-    def test_n_controlled_u_states(
+    def test_n_qubit_controlled_u_gate(
         self, ctrls_init_state, tgt_init_state, controlled_u_gate, expected
     ):
-        """Parametrized test for the n-controlled U gate in the form:
+        """Parametrized test for the n-qubit controlled U gate in the form:
         `(|control0>, ... |controln>), |target>, controlled-U -> target_meas`.
         """
         config = self._create_config(["Alice"])
-        program = self.NControlledUTest(
+        program = self.NQubitControlledUTest(
             ctrls_init_state=ctrls_init_state,
             tgt_init_state=tgt_init_state,
             controlled_u_gate=controlled_u_gate,

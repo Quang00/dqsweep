@@ -92,3 +92,19 @@ def n_qubit_controlled_u(
 
     for ancilla in ancillas:
         ancilla.measure()
+
+
+def multi_controlled_u_gate(
+    context: ProgramContext,
+    controlled_u_gate: Callable[[Qubit, Qubit], None],
+) -> Callable[..., None]:
+    """Helper that returns a function with the signature that accepts any
+    number of qubits and implements the n-qubit controlled-U function
+    `n_qubit_controlled_u`.
+    """
+
+    def multi_controlled_u(*qubits: Qubit) -> None:
+        *controls, target = qubits
+        n_qubit_controlled_u(controls, context, controlled_u_gate, target)
+
+    return multi_controlled_u

@@ -6,27 +6,27 @@ Overview:
 ---------
 This script simulates distributed quantum experiments using a configurable
 setup. It allows to sweep one or more parameters over defined ranges and then
-execute multiple simulation runs for each parameter combination. For every run,
-it calculates two performance metrics: the average fidelity (as a percentage)
-and the average simulation time (in milliseconds).
+execute multiple simulation runs in parallel for each parameter combination.
+For every run, it calculates two performance metrics: the average fidelity
+(as a percentage) and the average simulation time (in milliseconds).
 
 Process:
 --------
 1. Parameter Sweep:
    - Generates all combinations of values for the specified parameters.
    - For each combination, it executes the simulation a certain amount of times
-     which is configurable by the user and computes the mean fidelity and
-     simulation time.
+    which is configurable by the user and computes the mean fidelity and
+    simulation time.
 
 2. Data Generation:
    - Raw results and computed averages for each parameter combination are
-     stored in a pandas DataFrame and saved as a CSV file.
+    stored in a pandas DataFrame and saved as a CSV file.
    - Parameter–Performance Correlation txt file is provided and shows the
-     correlations between the input parameters and the performance metrics.
+    correlations between the input parameters and the performance metrics.
 
 3. Visualization:
    - 2D Heatmaps: These are generated for each performance metric based on
-     each unique pair of swept parameters.
+    each unique pair of swept parameters.
 
 Usage:
 ------
@@ -53,13 +53,14 @@ from functools import partial
 
 import pandas as pd
 
+from experiments.dgrover import GroverControl, GroverTarget
 from experiments.dgrover_2 import AliceDGrover2, BobDGrover2
 from experiments.dqft_2 import AliceDQFT2, BobDQFT2
-from experiments.nonlocal_cnot_telegate import AliceProgram, BobProgram
 from experiments.nonlocal_cnot_teledata import (
     Alice2Teleportations,
     Bob2Teleportations,
 )
+from experiments.nonlocal_cnot_telegate import AliceProgram, BobProgram
 from experiments.nonlocal_toffoli import (
     AliceToffoli,
     BobToffoli,
@@ -69,6 +70,7 @@ from experiments.pingpong import (
     AlicePingpongTeleportation,
     BobPingpongTeleportation
 )
+from squidasm.run.stack.config import StackNetworkConfig
 from utils.helper import (
     check_sweep_params_input,
     create_subdir,
@@ -77,7 +79,6 @@ from utils.helper import (
     parse_range,
 )
 from utils.plots import plot_combined_heatmaps
-from squidasm.run.stack.config import StackNetworkConfig
 
 
 # =============================================================================
@@ -121,17 +122,25 @@ def sweep_parameters(
     # Map experiments to their program classes.
     experiment_map = {
         "cnot_teledata": (Alice2Teleportations, Bob2Teleportations),
-        "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
-        "dqft2": (AliceDQFT2, BobDQFT2),
+        "dgrover": (GroverControl, GroverTarget),
         "dgrover2": (AliceDGrover2, BobDGrover2),
+        "dqft2": (AliceDQFT2, BobDQFT2),
+        "pingpong": (AlicePingpongTeleportation, BobPingpongTeleportation),
         "toffoli": (AliceToffoli, BobToffoli, CharlieToffoli),
     }
     classes = experiment_map.get(experiment, (AliceProgram, BobProgram))
     names = ["Alice", "Bob"] + (["Charlie"] if len(classes) > 2 else [])
-    programs = {
-        name: cls(num_epr_rounds=rounds)
-        for name, cls in zip(names, classes, strict=False)
-    }
+
+    if experiment == "dgrover":
+        peers = names[:-1]
+        trgt_peer = names[-1]
+        programs = {name: GroverControl(trgt_peer, rounds) for name in peers}
+        programs[trgt_peer] = GroverTarget(peers, rounds)
+    else:
+        programs = {
+            name: cls(num_epr_rounds=rounds)
+            for name, cls in zip(names, classes, strict=False)
+        }
 
     func = partial(
         parallelize_comb,

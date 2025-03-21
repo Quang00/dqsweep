@@ -19,12 +19,13 @@ The repository explores the performance of several quantum distributed experimen
 
 The experiments implemented in this repository include:
 
+- **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_teledata.py`):** Implementation of the distributed CNOT gate using two quantum teleportations.
 - **Nonlocal CNOT Gate (`nonlocal_cnot_telegate.py`):** Implementation of a distributed CNOT gate between Alice and Bob presented in the paper [[1]](#1).
-- **Nonlocal CNOT Gate with Two Teleportations (`nonlocal_cnot_teledata.py`):** Another implementation of the distributed CNOT gate using two quantum teleportations.
-- **Nonlocal Toffoli Gate (`nonlocal_toffoli.py`)**: Implementation of a distributed Toffoli gate between Alice, Bob and Charlie.
-- **Ping-Pong Teleportation (`pingpong.py`):** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
+- **Distributed Grover on Two Qubits (`dgrover_2.py`):** Implementation of a distributed Grover on two qubits with an initial pingpong exchange between Alice and Bob.
+- **Distributed Grover on N Qubits (`dgrover.py`):** General implementation of a distributed Grover on n qubits with an oracle that marks the state |1...1>.
 - **Distributed Quantum Fourier Transform (DQFT) on Two Qubits (`dqft_2.py`):** Implementation of a distributed QFT on two qubits.
-- **Distributed Grover on Two Qubits (`dgrover_2.py`):** Implementation of a distributed Grover on two qubits.
+- **Ping-Pong Teleportation (`pingpong.py`):** A bidirectional quantum teleportation where a qubit is sent back and forth between Alice and Bob.
+- **Nonlocal Toffoli Gate (`nonlocal_toffoli.py`)**: Implementation of a distributed Toffoli gate between Alice, Bob and Charlie.
 
 ## Installation
 
@@ -57,38 +58,39 @@ The experiments are executed through the `run_simulation.py` script, which does 
 
 1. **Configure A Quantum Network:**
 
-   - (**`--config`**): Provide a valid quantum network configuration or use the ones already provided (e.g., `perfect.yaml`, `depolarise_link.yaml`) in the `configurations/` folder. The default configuration is `perfect.yaml`.
+- (**`--config`**): Provide a valid quantum network configuration or use the ones already provided (e.g., `perfect.yaml`, `depolarise_link.yaml`) in the `configurations/` folder. The default configuration is `perfect.yaml`.
 
 2. **Setup the Experiment and Multiple Parameters:**
 
-   - (**`--experiment`**): Choose the experiment to run (options include `cnot_telegate`, `pingpong`, `dqft2`, `dgrover2`, or `cnot_teledata`). The default experiment is `cnot_telegate`.
-   - (**`--epr_rounds`**): Specify the number of EPR rounds per simulation. The default number is `10`.
-   - (**`--num_experiments`**): Specify the number of simulation runs per parameter combination. The default number is `10`.
-   - (**`--sweep_params`**): Define the comma-separated list of parameter to sweep (e.g., single_qubit_gate_depolar_prob, two_qubit_gate_depolar_prob, T1, T2, etc.). The default parameters are `single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob`.
-   - (**`--ranges`**): Provide for each swept parameter a valid range in the format "start,end,points". The default ranges are `"0.0,0.8,10" "0.0,0.8,10"`.
-   - (**`--output_dir`**): Define the path of the directory to save the results. The default folder is `results`.
+- (**`--experiment`**): Choose the experiment to run (options include `cnot_teledata`, `cnot_telegate`, `dgrover`, `dgrover2`, `dqft2`, `pingpong`, and `toffoli` ). The default experiment is `cnot_telegate`.
+- (**`--epr_rounds`**): Specify the number of EPR rounds per simulation. The default number is `10`.
+- (**`--num_experiments`**): Specify the number of simulation runs per parameter combination. The default number is `10`.
+- (**`--sweep_params`**): Define the comma-separated list of parameter to sweep (e.g., single_qubit_gate_depolar_prob, two_qubit_gate_depolar_prob, T1, T2, etc.). The default parameters are `single_qubit_gate_depolar_prob,two_qubit_gate_depolar_prob`.
+- (**`--ranges`**): Provide for each swept parameter a valid range in the format "start,end,points". The default ranges are `"0.0,0.8,10" "0.0,0.8,10"`.
+- (**`--output_dir`**): Define the path of the directory to save the results. The default folder is `results`.
 
 3. **Execute the Simulation:**
 
-   - Run the `run_simulation.py` script with the setup. The basic command to launch the simulation with the default configuration, experiment and parameters (see below for a complete command line):
-     ```bash
-     python -m experiments.run_simulation
-     ```
-   - The script creates an output subdirectory (named based on the experiment and swept parameters) that contains:
-     - A CSV file with raw simulation results.
-     - A TXT file with parameter-to-metric correlation values.
-     - Heat map plots with the performance results.
+- Run the `run_simulation.py` script with the setup. The basic command to launch the simulation with the default configuration, experiment and parameters (see below for a complete command line):
+  ```bash
+  python -m experiments.run_simulation
+  ```
+- The script creates an output subdirectory (named based on the experiment and swept parameters) that contains:
+  - A CSV file with raw simulation results.
+  - A TXT file with parameter-to-metric correlation values.
+  - Heat map plots with the performance results.
 
 ### The Distributed Experiments
 
 The provied experiments:
 
-- **`cnot_telegate`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
 - **`cnot_teledata`**: Nonlocal CNOT gate using two teleportations.
-- **`toffoli`**: Nonlocal Toffoli gate using two ebits and four bits in each direction.
-- **`pingpong`**: Ping-pong quantum teleportation between Alice and Bob.
+- **`cnot_telegate`**: Nonlocal CNOT gate using one ebit and one bit in each direction.
+- **`dgrover`**: General Distributed Grover on n qubits that searches |1...1>.
+- **`dgrover2`**: Distributed Grover on 2 qubits with an initial pingpong exchange between Alice and Bob.
 - **`dqft2`**: Distributed Quantum Fourier Transform on 2 qubits.
-- **`dgrover2`**: Distributed Grover on 2 qubits.
+- **`pingpong`**: Ping-pong quantum teleportation between Alice and Bob.
+- **`toffoli`**: Nonlocal Toffoli gate using two ebits and four bits in each direction.
 
 ### Example Command 1: Nonlocal CNOT (Depolarization Sweep)
 
