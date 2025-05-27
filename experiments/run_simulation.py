@@ -134,7 +134,7 @@ def sweep_parameters(
     if experiment == "dgrover":
         peers = names[:-1]
         trgt_peer = names[-1]
-        programs = {name: GroverControl(trgt_peer, rounds) for name in peers}
+        programs = {peer: GroverControl(trgt_peer, rounds) for peer in peers}
         programs[trgt_peer] = GroverTarget(peers, rounds)
     else:
         programs = {
@@ -191,7 +191,7 @@ def main():
         "--epr_rounds",
         type=int,
         default=10,
-        help="Number of EPR rounds. (Default: 10)."
+        help="Number of EPR rounds. (Default: 10).",
     )
     parser.add_argument(
         "--num_experiments",
@@ -258,7 +258,7 @@ def main():
         metric_correlation(
             df,
             sweep_params,
-            ["Average Fidelity (%)", "Average Simulation Time (ms)"],
+            ["Average Fidelity", "Average Simulation Time (ms)"],
             output_dir,
             args.experiment,
         )

@@ -248,13 +248,13 @@ def parallelize_comb(comb, cfg, sweep_params, num_experiments, programs):
     all_fid_results = [r[0] for r in last_program_results]
     all_time_results = [r[1] for r in last_program_results]
 
-    avg_fid = np.mean(all_fid_results) * 100
+    avg_fid = np.mean(all_fid_results)
     avg_time = np.mean(all_time_results)
 
     return {
         **map_param,
         "Fidelity Results": all_fid_results,
         "Simulation Time Results": all_time_results,
-        "Average Fidelity (%)": avg_fid,
+        "Average Fidelity": avg_fid,
         "Average Simulation Time (ms)": avg_time,
     }

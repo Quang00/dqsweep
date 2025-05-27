@@ -32,7 +32,7 @@ def test_distributed_quantum_grover(node_names, fidelity_threshold):
     ctrl_peers = node_names[:-1]
     trgt_peer = node_names[-1]
 
-    programs = {name: GroverControl(trgt_peer, rounds) for name in ctrl_peers}
+    programs = {peer: GroverControl(trgt_peer, rounds) for peer in ctrl_peers}
     programs[trgt_peer] = GroverTarget(ctrl_peers, rounds)
 
     avg_fidelity = simulate_and_compute_avg_fidelity(config, programs)

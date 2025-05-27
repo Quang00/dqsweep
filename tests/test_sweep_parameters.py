@@ -47,7 +47,7 @@ def test_basic_perfect_config(tmp_path):
         "two_qubit_gate_depolar_prob",
         "Fidelity Results",
         "Simulation Time Results",
-        "Average Fidelity (%)",
+        "Average Fidelity",
         "Average Simulation Time (ms)",
     ]
 

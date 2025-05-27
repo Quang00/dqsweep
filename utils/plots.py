@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 from utils.helper import truncate_param
 
@@ -34,23 +35,28 @@ def plot_heatmap(
         rounds (int): Number of epr rounds.
     """
     pivot = df.pivot_table(index=p, columns=q, values=metric["name"])
-    metric_matrix = pivot.values
 
-    im = ax.imshow(
-        metric_matrix,
-        extent=[
-            params[q][0],
-            params[q][-1],  # X-axis
-            params[p][0],
-            params[p][-1],  # Y-axis
-        ],
-        origin="lower",
-        aspect="auto",
+    x_vals = pivot.columns.values
+    y_vals = pivot.index.values
+
+    sns.heatmap(
+        pivot,
+        ax=ax,
         cmap=metric["cmap"],
+        annot=True,
+        fmt=".2f",
+        cbar_kws={"label": metric["name"]},
+        xticklabels=False,
+        yticklabels=False,
     )
 
-    cbar = ax.figure.colorbar(im, ax=ax)
-    cbar.set_label(metric["name"], fontsize=14)
+    ax.set_xticks(np.arange(len(x_vals)) + 0.5)
+    ax.set_yticks(np.arange(len(y_vals)) + 0.5)
+
+    ax.set_xticklabels([f"{v:.2f}" for v in x_vals], rotation=0, fontsize=12)
+    ax.set_yticklabels([f"{v:.2f}" for v in y_vals], rotation=0, fontsize=12)
+
+    ax.invert_yaxis()
 
     var1 = truncate_param(q)
     var2 = truncate_param(p)
@@ -169,7 +175,7 @@ def plot_combined_heatmaps(
     pairs = list(itertools.combinations(sweep_params, 2))
     metrics = [
         {
-            "name": "Average Fidelity (%)",
+            "name": "Average Fidelity",
             "cmap": "magma",
             "file_label": "fidelity"
         },
