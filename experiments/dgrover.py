@@ -6,6 +6,8 @@ This module implements the distributed Grover on n qubits,
 between n parties.
 """
 
+import numpy as np
+
 from netqasm.sdk.qubit import Qubit
 from netsquid.util.simtools import MILLISECOND, sim_time
 
@@ -17,6 +19,10 @@ from utils.routines import (
 )
 
 
+# TODO: Generalize to n qubits
+n = 3  # Number of qubits
+N = 2**n  # Number of elements
+iteration = int(np.round(np.pi / 4 * np.sqrt(N)))  # Number of iterations
 # =============================================================================
 # Grover's Control for distributed Grover on n qubits
 # =============================================================================
@@ -43,18 +49,19 @@ class GroverControl(Program):
             ctrl_qubit.H()
 
             # --- Oracle ---
-            yield from distributed_n_qubit_controlled_u_control(
-                context, self.target_peer, ctrl_qubit
-            )
+            for _ in range(iteration):
+                yield from distributed_n_qubit_controlled_u_control(
+                    context, self.target_peer, ctrl_qubit
+                )
 
-            # --- Diffusion ---
-            ctrl_qubit.H()
-            ctrl_qubit.X()
-            yield from distributed_n_qubit_controlled_u_control(
-                context, self.target_peer, ctrl_qubit
-            )
-            ctrl_qubit.X()
-            ctrl_qubit.H()
+                # --- Diffusion ---
+                ctrl_qubit.H()
+                ctrl_qubit.X()
+                yield from distributed_n_qubit_controlled_u_control(
+                    context, self.target_peer, ctrl_qubit
+                )
+                ctrl_qubit.X()
+                ctrl_qubit.H()
 
             meas = ctrl_qubit.measure()
             yield from context.connection.flush()
@@ -92,29 +99,30 @@ class GroverTarget(Program):
             target_qubit.H()
 
             # --- Oracle ---
-            yield from distributed_n_qubit_controlled_u_target(
-                context,
-                self.control_peers,
-                target_qubit,
-                multi_controlled_u_gate(
-                    context, lambda control, target: control.cphase(target)
-                ),
-            )
+            for _ in range(iteration):
+                yield from distributed_n_qubit_controlled_u_target(
+                    context,
+                    self.control_peers,
+                    target_qubit,
+                    multi_controlled_u_gate(
+                        context, lambda control, target: control.cphase(target)
+                    ),
+                )
 
-            # --- Diffusion ---
-            target_qubit.H()
-            target_qubit.X()
-            yield from distributed_n_qubit_controlled_u_target(
-                context,
-                self.control_peers,
-                target_qubit,
-                multi_controlled_u_gate(
-                    context, lambda control, target: control.cphase(target)
-                ),
-            )
-            target_qubit.X()
-            target_qubit.H()
-            yield from context.connection.flush()
+                # --- Diffusion ---
+                target_qubit.H()
+                target_qubit.X()
+                yield from distributed_n_qubit_controlled_u_target(
+                    context,
+                    self.control_peers,
+                    target_qubit,
+                    multi_controlled_u_gate(
+                        context, lambda control, target: control.cphase(target)
+                    ),
+                )
+                target_qubit.X()
+                target_qubit.H()
+                yield from context.connection.flush()
 
             # --- Round completed ---
             all_msg = []

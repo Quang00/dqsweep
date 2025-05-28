@@ -136,6 +136,12 @@ def sweep_parameters(
         trgt_peer = names[-1]
         programs = {peer: GroverControl(trgt_peer, rounds) for peer in peers}
         programs[trgt_peer] = GroverTarget(peers, rounds)
+        # TODO: Generalize to n qubits
+        programs = {
+            "Alice": GroverControl("Charlie", rounds),
+            "Bob": GroverControl("Charlie", rounds),
+            "Charlie": GroverTarget(["Alice", "Bob"], rounds),
+        }
     else:
         programs = {
             name: cls(num_epr_rounds=rounds)

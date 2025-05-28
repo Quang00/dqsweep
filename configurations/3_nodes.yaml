@@ -1,6 +1,6 @@
 # 3 node network, all the sources of noise have been disabled
 qdevice_cfg: &qdevice_cfg
-  num_qubits: 3
+  num_qubits: 4
 
   # coherence times (same for each qubit)
   T1: 0
