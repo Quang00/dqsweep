@@ -48,7 +48,9 @@ def test_basic_perfect_config(tmp_path):
         "Fidelity Results",
         "Simulation Time Results",
         "Average Fidelity",
+        "Standard Deviation Fidelity",
         "Average Simulation Time (ms)",
+        "Standard Deviation Simulation Time",
     ]
 
     np.testing.assert_array_equal(df.columns, expected_columns)
