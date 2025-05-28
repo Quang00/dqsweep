@@ -34,27 +34,35 @@ def plot_heatmap(
         exp (str): Name of the experiment.
         rounds (int): Number of epr rounds.
     """
-    pivot = df.pivot_table(index=p, columns=q, values=metric["name"])
+    pivot_mean = df.pivot_table(index=p, columns=q, values=metric["name"])
+    pivot_std = df.pivot_table(index=p, columns=q, values=metric["std"])
 
-    x_vals = pivot.columns.values
-    y_vals = pivot.index.values
+    annot = (
+        pivot_mean.round(3).astype(str)
+        + "\n ±"
+        + pivot_std.round(3).astype(str)
+    )
 
     sns.heatmap(
-        pivot,
+        pivot_mean,
         ax=ax,
         cmap=metric["cmap"],
-        annot=True,
-        fmt=".2f",
+        annot=annot,
+        fmt="",
+        annot_kws={"fontsize": 8},
         cbar_kws={"label": metric["name"]},
         xticklabels=False,
         yticklabels=False,
     )
 
+    x_vals = pivot_mean.columns.values
+    y_vals = pivot_mean.index.values
+
     ax.set_xticks(np.arange(len(x_vals)) + 0.5)
     ax.set_yticks(np.arange(len(y_vals)) + 0.5)
 
-    ax.set_xticklabels([f"{v:.2f}" for v in x_vals], rotation=0, fontsize=12)
-    ax.set_yticklabels([f"{v:.2f}" for v in y_vals], rotation=0, fontsize=12)
+    ax.set_xticklabels([f"{v:.3f}" for v in x_vals], rotation=0, fontsize=12)
+    ax.set_yticklabels([f"{v:.3f}" for v in y_vals], rotation=0, fontsize=12)
 
     ax.invert_yaxis()
 
@@ -176,11 +184,13 @@ def plot_combined_heatmaps(
     metrics = [
         {
             "name": "Average Fidelity",
+            "std": "Standard Deviation Fidelity",
             "cmap": "magma",
-            "file_label": "fidelity"
+            "file_label": "fidelity",
         },
         {
             "name": "Average Simulation Time (ms)",
+            "std": "Standard Deviation Simulation Time",
             "cmap": "viridis",
             "file_label": "sim_times",
         },
